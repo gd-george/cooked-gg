@@ -1,0 +1,2153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cooked.gg</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0d0d;
+  --surface: #161616;
+  --card: #1e1e1e;
+  --border: #272727;
+  --border-light: #333;
+  --text: #efefef;
+  --muted: #666;
+  --faint: #3a3a3a;
+  --red: #e53e3e;
+  --blue: #3b82f6;
+  --gold: #d4a017;
+  --green: #22c55e;
+  --orange: #f97316;
+  --purple: #a855f7;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ── NAV ── */
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 56px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(13,13,13,0.97);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+  gap: 16px;
+}
+
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 3px;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.logo span { color: var(--red); }
+
+.nav-center {
+  display: flex;
+  gap: 2px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.nav-tab {
+  padding: 6px 18px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.nav-tab:hover { color: var(--text); }
+.nav-tab.active { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+
+.donate-pill {
+  font-size: 0.75rem;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.donate-pill:hover { color: var(--gold); border-color: var(--gold); }
+
+/* ── HERO ── */
+.hero {
+  padding: 72px 32px 56px;
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.hero-tag {
+  display: inline-block;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 3px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.hero h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3rem, 8vw, 6rem);
+  line-height: 1;
+  letter-spacing: 4px;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+.hero h1 em {
+  color: var(--red);
+  font-style: normal;
+}
+
+.hero p {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 40px;
+  line-height: 1.7;
+}
+
+/* ── CATEGORY TABS ── */
+.cat-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.cat-tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cat-tab:hover { color: var(--text); border-color: var(--border-light); }
+.cat-tab.active { background: var(--card); color: var(--text); border-color: var(--border-light); }
+.cat-tab.thing-parent.active { color: var(--text); border-color: var(--border-light); }
+
+/* Thing subcategory row */
+.subcat-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: -10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.subcat-tab {
+  padding: 5px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.subcat-tab:hover { color: var(--text); border-color: var(--border-light); }
+.subcat-tab.active { background: var(--card); color: var(--text); border-color: var(--border-light); }
+
+/* Category suggestion banner */
+.cat-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin-bottom: 14px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+
+.cat-suggestion span { flex: 1; }
+
+.sug-switch {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.sug-switch:hover { opacity: 0.85; }
+
+.sug-ignore {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.sug-ignore:hover { color: var(--text); }
+
+/* ── SEARCH ── */
+.search-wrap { position: relative; }
+
+.search-row {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface);
+  transition: border-color 0.15s;
+}
+
+.search-row:focus-within { border-color: var(--border-light); }
+
+.search-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 13px 18px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+}
+
+.search-input::placeholder { color: var(--muted); }
+
+.search-go {
+  background: var(--red);
+  color: #fff;
+  border: none;
+  padding: 0 24px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.search-go:hover { opacity: 0.85; }
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0; right: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  display: none;
+  z-index: 50;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.drop-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+
+.drop-item:last-child { border-bottom: none; }
+.drop-item:hover { background: var(--surface); }
+
+.drop-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.drop-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.drop-info { flex: 1; min-width: 0; }
+.drop-name { font-weight: 600; font-size: 0.88rem; }
+.drop-desc { color: var(--muted); font-size: 0.75rem; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.drop-cat {
+  font-size: 0.65rem;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 7px;
+  flex-shrink: 0;
+}
+
+/* ── MAIN LAYOUT ── */
+.main { max-width: 960px; margin: 0 auto; padding: 40px 32px; }
+
+@media (max-width: 680px) {
+  nav { padding: 0 16px; }
+  .nav-center { display: none; }  /* hidden — replaced by bottom tab bar */
+  .donate-pill { display: none; } /* hidden on mobile — accessed via Vote tab */
+  .hero { padding: 48px 20px 40px; }
+  .main { padding: 24px 16px; }
+  .lb-grid { grid-template-columns: 1fr; }
+  /* push content up so bottom bar doesn't overlap */
+  body { padding-bottom: 64px; }
+}
+
+/* ── BOTTOM TAB BAR (mobile only) ── */
+.bottom-nav {
+  display: none;
+}
+
+@media (max-width: 680px) {
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background: rgba(13,13,13,0.98);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border);
+    z-index: 150;
+    justify-content: space-around;
+    align-items: stretch;
+  }
+
+  .bottom-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.6rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.15s;
+    padding: 0;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .bottom-tab-icon { font-size: 1.3rem; line-height: 1; }
+  .bottom-tab.active { color: var(--text); }
+  .bottom-tab:active { opacity: 0.7; }
+
+  /* active indicator dot */
+  .bottom-tab.active .bottom-tab-icon::after {
+    content: '';
+    display: block;
+    width: 4px; height: 4px;
+    background: var(--red);
+    border-radius: 50%;
+    margin: 2px auto 0;
+  }
+}
+
+/* ── SECTION HEADER ── */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.section-head h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 2px;
+  color: var(--text);
+}
+
+.section-sub {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+}
+
+/* ── BUZZ GRID ── */
+.buzz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin-bottom: 56px;
+}
+
+.buzz-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: border-color 0.15s;
+}
+
+.buzz-card:hover { border-color: var(--border-light); }
+
+.b-avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.b-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.b-info { flex: 1; min-width: 0; }
+.b-cat { font-size: 0.65rem; color: var(--muted); margin-bottom: 2px; }
+.b-name { font-weight: 600; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.b-badge { margin-top: 4px; }
+
+.b-bar-wrap { margin-top: 6px; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.b-bar { height: 100%; background: linear-gradient(90deg, var(--red), var(--blue)); border-radius: 2px; transition: width 0.4s; }
+
+.b-votes { font-size: 0.7rem; color: var(--muted); flex-shrink: 0; text-align: right; }
+.b-vnum { font-size: 0.88rem; color: var(--text); display: block; font-weight: 600; }
+
+/* ── LEADERBOARD ── */
+.filter-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-tab {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.filter-tab.active { background: var(--surface); color: var(--text); border-color: var(--border-light); }
+.filter-tab:hover:not(.active) { color: var(--text); }
+
+.lb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 48px; }
+
+.lb-col { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+
+.lb-head {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lb-head-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+}
+
+.lb-head-label.red { color: var(--red); }
+.lb-head-label.blue { color: var(--blue); }
+
+.lb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.lb-row:hover { background: rgba(255,255,255,0.03); }
+.lb-row:last-child { border-bottom: none; }
+
+.lb-rank { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--muted); width: 22px; flex-shrink: 0; }
+.lb-rank.r1 { color: var(--gold); }
+.lb-rank.r2 { color: #aaa; }
+.lb-rank.r3 { color: #b87333; }
+
+.lb-av {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.lb-av img { width: 100%; height: 100%; object-fit: cover; }
+
+.lb-info { flex: 1; min-width: 0; }
+.lb-name { font-weight: 600; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-catline { font-size: 0.65rem; color: var(--muted); margin-top: 1px; }
+
+.lb-votes { font-size: 0.7rem; color: var(--muted); text-align: right; flex-shrink: 0; }
+.lb-vnum { font-size: 0.88rem; color: var(--text); display: block; font-weight: 600; }
+
+/* ── BADGES ── */
+.badge {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.badge-gold   { background: rgba(212,160,23,0.15); color: var(--gold);   border: 1px solid rgba(212,160,23,0.3); }
+.badge-blue   { background: rgba(59,130,246,0.15); color: var(--blue);   border: 1px solid rgba(59,130,246,0.3); }
+.badge-red    { background: rgba(229,62,62,0.15);  color: var(--red);    border: 1px solid rgba(229,62,62,0.3); }
+.badge-grey   { background: rgba(102,102,102,0.15);color: #888;          border: 1px solid rgba(102,102,102,0.3); }
+.badge-orange { background: rgba(249,115,22,0.15); color: var(--orange); border: 1px solid rgba(249,115,22,0.3); }
+.badge-purple { background: rgba(168,85,247,0.15); color: var(--purple); border: 1px solid rgba(168,85,247,0.3); }
+
+/* ── MODAL ── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(6px);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.overlay.open { display: flex; }
+
+.modal {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: pop 0.25s cubic-bezier(0.34,1.4,0.64,1);
+}
+
+@keyframes pop { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.modal-header {
+  padding: 24px 24px 20px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.modal-x {
+  position: absolute; top: 16px; right: 16px;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem;
+  transition: color 0.15s;
+}
+.modal-x:hover { color: var(--text); }
+
+.modal-cat-label {
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.modal-av {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.modal-av img { width: 100%; height: 100%; object-fit: cover; }
+
+.modal-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: 2px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.modal-extract {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  margin-top: 8px;
+}
+
+/* stats row */
+.modal-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border-bottom: 1px solid var(--border);
+}
+
+.stat-cell {
+  padding: 16px;
+  text-align: center;
+  border-right: 1px solid var(--border);
+}
+.stat-cell:last-child { border-right: none; }
+.stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; }
+.stat-num.red { color: var(--red); }
+.stat-num.blue { color: var(--blue); }
+.stat-lbl { font-size: 0.65rem; color: var(--muted); margin-top: 2px; letter-spacing: 1px; text-transform: uppercase; }
+
+/* vote bar */
+.modal-bar-wrap {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  margin-bottom: 8px;
+}
+
+.modal-bar-labels .l { color: var(--red); font-weight: 600; }
+.modal-bar-labels .r { color: var(--blue); font-weight: 600; }
+
+.modal-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.modal-bar-fill { height: 100%; background: linear-gradient(90deg, var(--red), var(--blue)); border-radius: 3px; transition: width 0.4s; }
+
+/* needs votes */
+.needs-votes {
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+.needs-votes p { font-size: 0.72rem; color: var(--muted); margin-bottom: 10px; }
+.nv-pips { display: flex; gap: 4px; justify-content: center; }
+.pip { width: 14px; height: 4px; border-radius: 2px; background: var(--border); transition: background 0.2s; }
+.pip.on { background: var(--blue); }
+
+/* vote buttons */
+.vote-row { display: flex; gap: 10px; padding: 18px 24px; }
+
+.vote-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+
+.vote-btn-icon { font-size: 1.5rem; }
+.vote-btn-label { font-weight: 600; font-size: 0.78rem; letter-spacing: 0.5px; }
+
+.vote-btn.smooth-btn { color: var(--red); }
+.vote-btn.smooth-btn:hover, .vote-btn.smooth-btn.voted {
+  background: rgba(229,62,62,0.1);
+  border-color: var(--red);
+}
+
+.vote-btn.giga-btn { color: var(--blue); }
+.vote-btn.giga-btn:hover, .vote-btn.giga-btn.voted {
+  background: rgba(59,130,246,0.1);
+  border-color: var(--blue);
+}
+
+/* verdict */
+.verdict-box {
+  margin: 0 24px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 18px;
+}
+
+.verdict-label { font-size: 0.65rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+.verdict-value { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 2px; }
+.verdict-hint { font-size: 0.68rem; color: var(--muted); margin-top: 4px; }
+
+/* share */
+.share-section {
+  margin: 0 24px 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* hidden canvas used to generate the share image */
+#shareCanvas { display: none; }
+
+.share-preview {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  display: block;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.share-btn {
+  width: 100%;
+  padding: 11px;
+  background: var(--blue);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.share-btn:hover { opacity: 0.88; }
+.share-btn:disabled { opacity: 0.45; cursor: default; }
+
+/* ── TITLES PAGE ── */
+.titles-filter { display: flex; gap: 6px; margin-bottom: 24px; flex-wrap: wrap; }
+
+.titles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.title-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.title-card-icon { font-size: 1.6rem; margin-bottom: 8px; }
+.title-card-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 1px; margin-bottom: 6px; }
+.title-card-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+.title-card-req { margin-top: 10px; font-size: 0.65rem; color: var(--faint); border-top: 1px solid var(--border); padding-top: 10px; }
+
+/* ── DONATE MODAL ── */
+.donate-modal {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  max-width: 420px;
+  width: 100%;
+  padding: 32px 28px 28px;
+  position: relative;
+  text-align: center;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: pop 0.25s cubic-bezier(0.34,1.4,0.64,1);
+}
+
+.donate-emoji { font-size: 2.5rem; margin-bottom: 10px; }
+.donate-headline { font-family: 'Bebas Neue', sans-serif; font-size: 1.7rem; letter-spacing: 2px; color: var(--gold); margin-bottom: 8px; }
+.donate-sub { font-size: 0.82rem; color: var(--muted); line-height: 1.6; margin-bottom: 22px; }
+.donate-sub strong { color: var(--text); }
+
+.next-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 22px; text-align: left; }
+.next-label { font-size: 0.62rem; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 14px; }
+.next-feat { display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start; }
+.next-feat:last-child { margin-bottom: 0; }
+.next-feat-icon { font-size: 1.1rem; flex-shrink: 0; }
+.next-feat-text { font-size: 0.78rem; line-height: 1.5; }
+.next-feat-text strong { color: var(--text); display: block; font-size: 0.82rem; }
+.next-feat-text span { color: var(--muted); }
+
+.amount-row { display: flex; gap: 6px; justify-content: center; margin-bottom: 14px; }
+.amt-btn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.88rem; font-weight: 600; transition: all 0.15s; }
+.amt-btn:hover, .amt-btn.on { background: rgba(212,160,23,0.1); border-color: var(--gold); color: var(--gold); }
+
+.donate-go { width: 100%; padding: 12px; background: var(--gold); color: #000; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s; letter-spacing: 1px; }
+.donate-go:hover { opacity: 0.88; }
+.donate-fine { margin-top: 10px; font-size: 0.65rem; color: var(--muted); }
+
+.custom-amount-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.custom-amount-input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+  min-width: 0;
+}
+.custom-amount-input::placeholder { color: var(--muted); font-weight: 400; }
+.custom-amount-input:focus { border-color: var(--gold); }
+/* hide number arrows */
+.custom-amount-input::-webkit-outer-spin-button,
+.custom-amount-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.custom-amount-input[type=number] { -moz-appearance: textfield; }
+
+.custom-amt-label {
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  padding: 0 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.custom-amount-input.with-prefix { border-radius: 0 6px 6px 0; }
+
+/* ── UTILS ── */
+.spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 20px; font-size: 0.8rem; z-index: 500; transition: transform 0.25s cubic-bezier(0.34,1.4,0.64,1); white-space: nowrap; color: var(--text); }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+.empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+.empty-icon { font-size: 2rem; margin-bottom: 10px; }
+.empty-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 6px; }
+.empty-sub { font-size: 0.8rem; }
+
+.page { display: none; }
+.page.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">COOKED<span>.GG</span></div>
+  <div class="nav-center">
+    <button class="nav-tab active" onclick="showPage('home',this)">Vote</button>
+    <button class="nav-tab" onclick="showPage('boards',this)">Boards</button>
+    <button class="nav-tab" onclick="showPage('titles',this)">Titles</button>
+  </div>
+  <button class="donate-pill" onclick="openDonate()">☕ Support</button>
+</nav>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <span class="hero-tag">cooked.gg — name · place · animal · thing</span>
+    <h1>COOKED<br>OR NOT</h1>
+    <p>You know the game. Now the internet decides what's cooked and what's goated.</p>
+
+    <div class="cat-row" id="catRow">
+      <button class="cat-tab active" data-cat="name"   onclick="pickCat('name',this)">🧑 Name</button>
+      <button class="cat-tab"        data-cat="place"  onclick="pickCat('place',this)">🌍 Place</button>
+      <button class="cat-tab"        data-cat="animal" onclick="pickCat('animal',this)">🐾 Animal</button>
+      <button class="cat-tab thing-parent" id="thingParentBtn" onclick="toggleThing(this)">⚡ Thing ▾</button>
+    </div>
+    <div class="subcat-row" id="subcatRow" style="display:none">
+      <button class="subcat-tab active" data-cat="food"      onclick="pickSubcat('food',this)">🍽️ Food</button>
+      <button class="subcat-tab"        data-cat="invention" onclick="pickSubcat('invention',this)">💡 Invention</button>
+      <button class="subcat-tab"        data-cat="concept"   onclick="pickSubcat('concept',this)">🧠 Concept</button>
+      <button class="subcat-tab"        data-cat="brand"     onclick="pickSubcat('brand',this)">🏢 Brand</button>
+    </div>
+    <div class="cat-suggestion" id="catSuggestion" style="display:none">
+      <span id="catSugMsg"></span>
+      <button class="sug-switch" id="catSugBtn" onclick="acceptSuggestion()">Switch</button>
+      <button class="sug-ignore" onclick="dismissSuggestion()">Ignore</button>
+    </div>
+
+    <div class="search-wrap">
+      <div class="search-row">
+        <input id="searchInput" class="search-input" type="text" placeholder="Search a famous name…" autocomplete="off">
+        <button class="search-go" onclick="doSearch()">Search</button>
+      </div>
+      <div class="dropdown" id="dropdown"></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="section-head">
+      <h2>🔥 This Week's Buzz</h2>
+      <span class="section-sub">Most voted · all categories</span>
+    </div>
+    <div class="buzz-grid" id="buzzGrid"></div>
+  </div>
+</div>
+
+<!-- BOARDS -->
+<div class="page" id="page-boards">
+  <div class="main">
+    <div class="section-head"><h2>Leaderboards</h2></div>
+    <div class="filter-row" id="lbFilters">
+      <button class="filter-tab active" onclick="setLbCat('all',this)">All</button>
+      <button class="filter-tab" onclick="setLbCat('name',this)">🧑 Name</button>
+      <button class="filter-tab" onclick="setLbCat('place',this)">🌍 Place</button>
+      <button class="filter-tab" onclick="setLbCat('animal',this)">🐾 Animal</button>
+      <button class="filter-tab" onclick="setLbCat('food',this)">🍽️ Food</button>
+      <button class="filter-tab" onclick="setLbCat('invention',this)">💡 Invention</button>
+      <button class="filter-tab" onclick="setLbCat('concept',this)">🧠 Concept</button>
+      <button class="filter-tab" onclick="setLbCat('brand',this)">🏢 Brand</button>
+    </div>
+    <div class="lb-grid">
+      <div class="lb-col">
+        <div class="lb-head"><span id="lbSIcon">🧠💨</span><span class="lb-head-label red" id="lbSTitle">Smooth Brain</span></div>
+        <div id="lbSmooth"></div>
+      </div>
+      <div class="lb-col">
+        <div class="lb-head"><span id="lbGIcon">⚡🧠</span><span class="lb-head-label blue" id="lbGTitle">Giga Brain</span></div>
+        <div id="lbGiga"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TITLES -->
+<div class="page" id="page-titles">
+  <div class="main">
+    <div class="section-head"><h2>Title System</h2><span class="section-sub">How titles are earned</span></div>
+    <div class="titles-filter" id="titlesFilter">
+      <button class="filter-tab active" onclick="setTitlesCat('name',this)">🧑 Name</button>
+      <button class="filter-tab" onclick="setTitlesCat('place',this)">🌍 Place</button>
+      <button class="filter-tab" onclick="setTitlesCat('animal',this)">🐾 Animal</button>
+      <button class="filter-tab" onclick="setTitlesCat('food',this)">🍽️ Food</button>
+      <button class="filter-tab" onclick="setTitlesCat('invention',this)">💡 Invention</button>
+      <button class="filter-tab" onclick="setTitlesCat('concept',this)">🧠 Concept</button>
+      <button class="filter-tab" onclick="setTitlesCat('brand',this)">🏢 Brand</button>
+    </div>
+    <div class="titles-grid" id="titlesGrid"></div>
+  </div>
+</div>
+
+<!-- VOTE MODAL -->
+<div class="overlay" id="modalOverlay" onclick="closeModalOut(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <button class="modal-x" onclick="closeModal()">✕</button>
+      <div class="modal-cat-label" id="mCatLabel">🧑 Name</div>
+      <div class="modal-av" id="mAv">🧑</div>
+      <div class="modal-name" id="mName">—</div>
+      <div id="mBadge" style="margin-top:6px"></div>
+      <div class="modal-extract" id="mExtract"></div>
+    </div>
+
+    <div class="modal-stats">
+      <div class="stat-cell"><div class="stat-num red" id="sSmooth">0</div><div class="stat-lbl" id="sSmLabel">Smooth</div></div>
+      <div class="stat-cell"><div class="stat-num blue" id="sGiga">0</div><div class="stat-lbl" id="sGiLabel">Giga</div></div>
+      <div class="stat-cell"><div class="stat-num" id="sTotal">0</div><div class="stat-lbl">Total</div></div>
+    </div>
+
+    <div id="barSection" class="modal-bar-wrap">
+      <div class="modal-bar-labels">
+        <span class="l" id="barL">0%</span>
+        <span class="r" id="barR">0%</span>
+      </div>
+      <div class="modal-bar"><div class="modal-bar-fill" id="barFill" style="width:50%"></div></div>
+    </div>
+
+    <div id="nvSection" class="needs-votes" style="display:none">
+      <p id="nvMsg">Need 10 more votes to unlock a title</p>
+      <div class="nv-pips" id="nvPips"></div>
+    </div>
+
+    <div class="vote-row">
+      <button class="vote-btn smooth-btn" id="btnSmooth" onclick="castVote('smooth')">
+        <span class="vote-btn-icon" id="vSIcon">🧠💨</span>
+        <span class="vote-btn-label" id="vSLabel">Smooth Brain</span>
+      </button>
+      <button class="vote-btn giga-btn" id="btnGiga" onclick="castVote('giga')">
+        <span class="vote-btn-icon" id="vGIcon">⚡🧠</span>
+        <span class="vote-btn-label" id="vGLabel">Giga Brain</span>
+      </button>
+    </div>
+
+    <div class="verdict-box">
+      <div class="verdict-label">Current Verdict</div>
+      <div class="verdict-value" id="verdictVal">—</div>
+      <div class="verdict-hint" id="verdictHint"></div>
+    </div>
+
+    <div class="share-section">
+      <!-- Canvas (hidden) used to draw the card, img shows the preview -->
+      <canvas id="shareCanvas" width="1080" height="1080"></canvas>
+      <img id="sharePreview" class="share-preview" alt="Share card preview" onclick="doShare()">
+      <button class="share-btn" id="shareBtn" onclick="doShare()">
+        <span>↑</span> Share for votes
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- DONATE MODAL -->
+<div class="overlay" id="donateOverlay" onclick="closeDonateOut(event)">
+  <div class="donate-modal">
+    <button class="modal-x" onclick="closeDonate()">✕</button>
+    <div class="donate-emoji">🪙</div>
+    <div class="donate-headline">KEEP COOKED.GG ALIVE</div>
+    <p class="donate-sub">Server bills are real. Motivation is not free.<br><strong>No ads. No VC money. No subscriptions.</strong><br>Just one guy, one file, and the internet deciding what's cooked. 💀</p>
+    <div class="next-box">
+      <div class="next-label">What your money builds next</div>
+      <div class="next-feat"><div class="next-feat-icon">🃏</div><div class="next-feat-text"><strong>Shareable Verdict Cards</strong><span>A stamped, story-ready card — "Certified Goated · Week 12"</span></div></div>
+      <div class="next-feat"><div class="next-feat-icon">⚔️</div><div class="next-feat-text"><strong>Head-to-Head Battles</strong><span>A vs B — cooked or goated? Let the internet settle it.</span></div></div>
+      <div class="next-feat"><div class="next-feat-icon">🏆</div><div class="next-feat-text"><strong>Monthly Hall of Fame</strong><span>Top entries get a permanent archive spot.</span></div></div>
+      <div class="next-feat"><div class="next-feat-icon">📊</div><div class="next-feat-text"><strong>Drama Charts</strong><span>Watch reputations rise and collapse over time.</span></div></div>
+    </div>
+    <div class="amount-row">
+      <button class="amt-btn on" onclick="pickAmt(this,2)">$2</button>
+      <button class="amt-btn" onclick="pickAmt(this,4)">$4</button>
+      <button class="amt-btn" onclick="pickAmt(this,8)">$8</button>
+      <button class="amt-btn" onclick="pickAmt(this,16)">$16</button>
+      <button class="amt-btn" onclick="pickAmt(this,32)">$32 👑</button>
+    </div>
+
+    <div class="custom-amount-row">
+      <span class="custom-amt-label">$</span>
+      <input
+        id="customAmtInput"
+        class="custom-amount-input with-prefix"
+        type="number"
+        min="1"
+        max="9999"
+        placeholder="Other amount"
+        oninput="pickCustomAmt(this)"
+      >
+    </div>
+
+    <button class="donate-go" onclick="goDonate()" id="donateGoBtn">SUPPORT THE SITE ⚡</button>
+    <div class="donate-fine" id="donateFine">one-time · no regrets · keeps the site alive 🫀</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- BOTTOM TAB BAR — mobile only -->
+<nav class="bottom-nav">
+  <button class="bottom-tab active" id="btVote"   onclick="showPage('home',this,true)">
+    <span class="bottom-tab-icon">🗳️</span>Vote
+  </button>
+  <button class="bottom-tab"        id="btBoards" onclick="showPage('boards',this,true)">
+    <span class="bottom-tab-icon">🏆</span>Boards
+  </button>
+  <button class="bottom-tab"        id="btTitles" onclick="showPage('titles',this,true)">
+    <span class="bottom-tab-icon">🎖️</span>Titles
+  </button>
+  <button class="bottom-tab"        id="btSupport" onclick="openDonate()">
+    <span class="bottom-tab-icon">☕</span>Support
+  </button>
+</nav>
+
+<script>
+// ─────────────────────────────────────────
+//  CATEGORIES
+// ─────────────────────────────────────────
+const CATS = {
+  name: {
+    label:'Name', icon:'🧑', hint:'Search a famous name…',
+    sLabel:'Smooth Brain', gLabel:'Giga Brain',
+    sIcon:'🧠💨', gIcon:'⚡🧠',
+    sStatLbl:'Smooth', gStatLbl:'Giga',
+    defaultAv:'🧑',
+    titles:[
+      {key:'GOAT',     icon:'🐐', name:'The GOAT',        cls:'badge-gold',   color:'#d4a017',
+       side:'giga',  r10:null,r50:null,r100:0.75,
+       desc:'Greatest Of All Time. Overwhelming consensus, elite vote count.',req:'100+ votes · 75%+ giga'},
+      {key:'ORACLE',   icon:'🔮', name:'The Oracle',       cls:'badge-blue',   color:'#3b82f6',
+       side:'giga',  r10:null,r50:0.70,r100:0.70,
+       desc:'Sees what others can\'t. Strong majority, no room for doubt.',req:'50+ votes · 70%+ giga'},
+      {key:'ARCHITECT',icon:'🏛️', name:'The Architect',   cls:'badge-blue',   color:'#60a5fa',
+       side:'giga',  r10:0.65,r50:0.60,r100:0.58,
+       desc:'Methodical. Solid. Consistently making the right calls.',req:'10+ votes · 60%+ giga'},
+      {key:'PHENOMENON',icon:'🌀',name:'Phenomenon',       cls:'badge-purple', color:'#a855f7',
+       side:'mid',   r10:null,r50:null,r100:null,
+       desc:'Nobody agrees but everyone has an opinion. Maximally divisive.',req:'100+ votes · 45–55% split'},
+      {key:'MID',      icon:'😐', name:'Mid Council',      cls:'badge-grey',   color:'#888',
+       side:'mid',   r10:null,r50:null,r100:null,
+       desc:'Not bad. Not good. Aggressively, defiantly average.',req:'10+ votes · even split'},
+      {key:'DEOW',     icon:'📉', name:'The Deow',         cls:'badge-orange', color:'#f97316',
+       side:'smooth',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Dropped Everything On the Way down. Had potential. Blew it.',req:'10+ votes · 60%+ smooth'},
+      {key:'NPC',      icon:'🤖', name:'Certified NPC',    cls:'badge-red',    color:'#e53e3e',
+       side:'smooth',r10:null,r50:0.70,r100:0.70,
+       desc:'No thoughts. Head empty. The crowd is unanimous.',req:'50+ votes · 70%+ smooth'},
+      {key:'COOKED',   icon:'💀', name:'Cooked',           cls:'badge-red',    color:'#e53e3e',
+       side:'smooth',r10:null,r50:null,r100:0.75,
+       desc:'No recovery in sight. The internet has made its final ruling.',req:'100+ votes · 75%+ smooth'},
+    ]
+  },
+  place: {
+    label:'Place', icon:'🌍', hint:'Search a city, country, or landmark…',
+    sLabel:'Tourist Trap', gLabel:'Peak Location',
+    sIcon:'🗑️', gIcon:'📍',
+    sStatLbl:'Trap', gStatLbl:'Peak',
+    defaultAv:'🌍',
+    titles:[
+      {key:'CERTIFIED',  icon:'✈️', name:'Certified Destination',cls:'badge-gold',  color:'#d4a017',
+       side:'giga',r10:null,r50:null,r100:0.75,
+       desc:'The place everyone must visit before they die.',req:'100+ votes · 75%+ peak'},
+      {key:'HIDDEN_GEM', icon:'💎', name:'Hidden Gem',           cls:'badge-blue',  color:'#3b82f6',
+       side:'giga',r10:null,r50:0.70,r100:0.70,
+       desc:'Slept on by the masses. Only those who know, know.',req:'50+ votes · 70%+ peak'},
+      {key:'RISING',     icon:'📈', name:'On the Come Up',       cls:'badge-blue',  color:'#60a5fa',
+       side:'giga',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Getting better. People are starting to notice.',req:'10+ votes · 60%+ peak'},
+      {key:'DIVISIVE',   icon:'🌀', name:'Divisive Destination', cls:'badge-purple',color:'#a855f7',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'Love it or hate it. Nobody is neutral.',req:'100+ votes · 45–55% split'},
+      {key:'MID',        icon:'😐', name:'Mid Coordinates',      cls:'badge-grey',  color:'#888',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'It\'s a place. You can go there. You\'ll probably be fine.',req:'10+ votes · even split'},
+      {key:'OVERRATED',  icon:'📉', name:'Overrated Capital',    cls:'badge-orange',color:'#f97316',
+       side:'smooth',r10:0.65,r50:0.60,r100:0.58,
+       desc:'The hype is not real. The queues are. The disappointment is guaranteed.',req:'10+ votes · 60%+ trap'},
+      {key:'TRAP',       icon:'🪤', name:'Tourist Trap',         cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:0.70,r100:0.70,
+       desc:'Photogenic. Expensive. Hollow. Built entirely for Instagram.',req:'50+ votes · 70%+ trap'},
+      {key:'AVOID',      icon:'💀', name:'Avoid at All Costs',   cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:null,r100:0.75,
+       desc:'The internet has spoken. Do not book this trip.',req:'100+ votes · 75%+ trap'},
+    ]
+  },
+  animal: {
+    label:'Animal', icon:'🐾', hint:'Search an animal…',
+    sLabel:'Cooked by Evolution', gLabel:'Apex Creature',
+    sIcon:'🦆', gIcon:'🦁',
+    sStatLbl:'Dumb', gStatLbl:'Apex',
+    defaultAv:'🐾',
+    titles:[
+      {key:'NGOAT',     icon:'🦁', name:"Nature's GOAT",       cls:'badge-gold',  color:'#d4a017',
+       side:'giga',r10:null,r50:null,r100:0.75,
+       desc:'The pinnacle of evolution. Million years, zero mistakes.',req:'100+ votes · 75%+ apex'},
+      {key:'APEX',      icon:'⚡',  name:'Apex Creature',       cls:'badge-blue',  color:'#3b82f6',
+       side:'giga',r10:null,r50:0.70,r100:0.70,
+       desc:'Built different. Nature designed this one properly.',req:'50+ votes · 70%+ apex'},
+      {key:'EVOLVED',   icon:'🧬', name:'Evolved',              cls:'badge-blue',  color:'#60a5fa',
+       side:'giga',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Getting the job done. Respectable evolutionary choices.',req:'10+ votes · 60%+ apex'},
+      {key:'CHAOTIC',   icon:'🌀', name:'Chaotic Neutral',      cls:'badge-purple',color:'#a855f7',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'Could be genius, could be dumb. The internet genuinely cannot decide.',req:'100+ votes · 45–55% split'},
+      {key:'MID',       icon:'😐', name:'Baseline Creature',    cls:'badge-grey',  color:'#888',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'Exists. Eats things. Does animal stuff. Fine.',req:'10+ votes · even split'},
+      {key:'QUESTIONABLE',icon:'📉',name:'Questionable Choices',cls:'badge-orange',color:'#f97316',
+       side:'smooth',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Evolution made some decisions here that raise serious questions.',req:'10+ votes · 60%+ dumb'},
+      {key:'NPC_WILD',  icon:'🤖', name:'NPC of the Wild',      cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:0.70,r100:0.70,
+       desc:'No thoughts. Leaf blows past. Resets to idle animation.',req:'50+ votes · 70%+ dumb'},
+      {key:'EXTINCT_SOON',icon:'💀',name:'Cooked by Evolution', cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:null,r100:0.75,
+       desc:'How is this still alive? A miracle of stubbornness over intelligence.',req:'100+ votes · 75%+ dumb'},
+    ]
+  },
+  food: {
+    label:'Food', icon:'🍽️', hint:'Search a dish, cuisine, or ingredient…',
+    sLabel:'Should Be Illegal', gLabel:'No Notes',
+    sIcon:'🤢', gIcon:'😮‍💨',
+    sStatLbl:'Illegal', gStatLbl:'Perfection',
+    defaultAv:'🍽️', parent:'thing',
+    titles:[
+      {key:'GOAT_FOOD',  icon:'🏆', name:'Culinary GOAT',      cls:'badge-gold',  color:'#d4a017',
+       side:'giga',r10:null,r50:null,r100:0.75,
+       desc:'No notes. No substitutions. This is what food is for.',req:'100+ votes · 75%+ perfection'},
+      {key:'NO_NOTES',   icon:'😮‍💨',name:'No Notes',           cls:'badge-blue',  color:'#3b82f6',
+       side:'giga',r10:null,r50:0.70,r100:0.70,
+       desc:'Absolutely certified. Eaten by everyone, loved by all.',req:'50+ votes · 70%+ perfection'},
+      {key:'BANGER',     icon:'🔥', name:'Certified Banger',   cls:'badge-blue',  color:'#60a5fa',
+       side:'giga',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Consistent. Reliable. Never disappoints.',req:'10+ votes · 60%+ perfection'},
+      {key:'DIVISIVE_F', icon:'🌀', name:'Divisive Dish',      cls:'badge-purple',color:'#a855f7',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'Pineapple-on-pizza territory. The discourse will never end.',req:'100+ votes · 45–55% split'},
+      {key:'MID_F',      icon:'😐', name:'Mid Plate',          cls:'badge-grey',  color:'#888',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'Food. It exists. You\'ll eat it. You\'ll feel nothing.',req:'10+ votes · even split'},
+      {key:'DISAPPOINTS',icon:'📉', name:'Disappoints Every Time',cls:'badge-orange',color:'#f97316',
+       side:'smooth',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Looks better than it tastes. Every. Single. Time.',req:'10+ votes · 60%+ illegal'},
+      {key:'CRIME_F',    icon:'🤢', name:'Culinary Crime',     cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:0.70,r100:0.70,
+       desc:'Who approved this? Who ordered it twice? Crimes against taste.',req:'50+ votes · 70%+ illegal'},
+      {key:'ILLEGAL',    icon:'💀', name:'Should Be Illegal',  cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:null,r100:0.75,
+       desc:'The internet has ruled. This dish is a public health hazard.',req:'100+ votes · 75%+ illegal'},
+    ]
+  },
+  invention: {
+    label:'Invention', icon:'💡', hint:'Search a technology, product, or gadget…',
+    sLabel:'Engineering Failure', gLabel:'Changes Everything',
+    sIcon:'💩', gIcon:'💡',
+    sStatLbl:'Failure', gStatLbl:'Genius',
+    defaultAv:'💡', parent:'thing',
+    titles:[
+      {key:'CIVILISATION',icon:'🏆',name:'Built Civilisation',  cls:'badge-gold',  color:'#d4a017',
+       side:'giga',r10:null,r50:null,r100:0.75,
+       desc:'Without this, society does not exist. Full stop.',req:'100+ votes · 75%+ genius'},
+      {key:'CHANGES_ALL', icon:'💡',name:'Changes Everything',  cls:'badge-blue',  color:'#3b82f6',
+       side:'giga',r10:null,r50:0.70,r100:0.70,
+       desc:'Before and after. The world split into two eras.',req:'50+ votes · 70%+ genius'},
+      {key:'BUILT_DIFF',  icon:'⚙️',name:'Built Different',    cls:'badge-blue',  color:'#60a5fa',
+       side:'giga',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Solid engineering. Earns its place in history quietly.',req:'10+ votes · 60%+ genius'},
+      {key:'DIVISIVE_I',  icon:'🌀',name:'Divisive Tech',       cls:'badge-purple',color:'#a855f7',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'Half the world loves it, half wants it gone.',req:'100+ votes · 45–55% split'},
+      {key:'MID_I',       icon:'😐',name:'Mid Innovation',      cls:'badge-grey',  color:'#888',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'Exists. Works. Does not change anything.',req:'10+ votes · even split'},
+      {key:'FUMBLE',      icon:'📉',name:'The Fumble',          cls:'badge-orange',color:'#f97316',
+       side:'smooth',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Good idea, catastrophically bad execution.',req:'10+ votes · 60%+ failure'},
+      {key:'ENG_FAIL',    icon:'💩',name:'Engineering Failure', cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:0.70,r100:0.70,
+       desc:'Who greenlit this? A monument to wasted resources.',req:'50+ votes · 70%+ failure'},
+      {key:'RECALLED',    icon:'💀',name:'Should Be Recalled',  cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:null,r100:0.75,
+       desc:'The internet has spoken. Pull it from shelves immediately.',req:'100+ votes · 75%+ failure'},
+    ]
+  },
+  concept: {
+    label:'Concept', icon:'🧠', hint:'Search an idea, movement, or philosophy…',
+    sLabel:'Cooked Ideology', gLabel:'Enlightened',
+    sIcon:'🌀', gIcon:'✨',
+    sStatLbl:'Cooked', gStatLbl:'Enlightened',
+    defaultAv:'🧠', parent:'thing',
+    titles:[
+      {key:'TRANSCENDENT',icon:'✨',name:'Transcendent',        cls:'badge-gold',  color:'#d4a017',
+       side:'giga',r10:null,r50:null,r100:0.75,
+       desc:'Beyond debate. This idea is simply correct and always was.',req:'100+ votes · 75%+ enlightened'},
+      {key:'ENLIGHTENED', icon:'🔮',name:'Enlightened',         cls:'badge-blue',  color:'#3b82f6',
+       side:'giga',r10:null,r50:0.70,r100:0.70,
+       desc:'Ahead of its time. Most people just haven\'t caught up yet.',req:'50+ votes · 70%+ enlightened'},
+      {key:'ONTO_SOMETHING',icon:'📡',name:'Onto Something',   cls:'badge-blue',  color:'#60a5fa',
+       side:'giga',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Makes sense when you think about it. People are warming up.',req:'10+ votes · 60%+ enlightened'},
+      {key:'DISCOURSE',   icon:'🌀',name:'Pure Discourse',      cls:'badge-purple',color:'#a855f7',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'Nobody agrees. The thread goes on forever. Nobody wins.',req:'100+ votes · 45–55% split'},
+      {key:'MID_C',       icon:'😐',name:'Mid Take',            cls:'badge-grey',  color:'#888',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'Technically a thought. Barely.',req:'10+ votes · even split'},
+      {key:'RED_FLAG',    icon:'📉',name:'Red Flag Theory',     cls:'badge-orange',color:'#f97316',
+       side:'smooth',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Sounds plausible until you think for five seconds.',req:'10+ votes · 60%+ cooked'},
+      {key:'IDEOLOGY',    icon:'🌀',name:'Cooked Ideology',     cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:0.70,r100:0.70,
+       desc:'Confidently wrong. The crowd sees through it.',req:'50+ votes · 70%+ cooked'},
+      {key:'DEBUNKED',    icon:'💀',name:'Fully Debunked',      cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:null,r100:0.75,
+       desc:'The internet has made its ruling. This idea is cooked.',req:'100+ votes · 75%+ cooked'},
+    ]
+  },
+  brand: {
+    label:'Brand', icon:'🏢', hint:'Search a company, app, or franchise…',
+    sLabel:'Scam', gLabel:'Goated Brand',
+    sIcon:'🚩', gIcon:'👑',
+    sStatLbl:'Scam', gStatLbl:'Goated',
+    defaultAv:'🏢', parent:'thing',
+    titles:[
+      {key:'ICONIC',      icon:'👑',name:'Iconic',              cls:'badge-gold',  color:'#d4a017',
+       side:'giga',r10:null,r50:null,r100:0.75,
+       desc:'Transcended being a brand. Now it\'s just part of culture.',req:'100+ votes · 75%+ goated'},
+      {key:'GOATED_B',    icon:'🏆',name:'Goated Brand',        cls:'badge-blue',  color:'#3b82f6',
+       side:'giga',r10:null,r50:0.70,r100:0.70,
+       desc:'Deserved loyalty. Earns every penny. The real deal.',req:'50+ votes · 70%+ goated'},
+      {key:'SOLID',       icon:'✅', name:'Solid',              cls:'badge-blue',  color:'#60a5fa',
+       side:'giga',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Reliable. Consistent. Not exciting but never lets you down.',req:'10+ votes · 60%+ goated'},
+      {key:'DIVISIVE_B',  icon:'🌀',name:'Love or Hate',        cls:'badge-purple',color:'#a855f7',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'Half the internet is loyal. The other half has receipts.',req:'100+ votes · 45–55% split'},
+      {key:'MID_B',       icon:'😐',name:'Mid Brand',           cls:'badge-grey',  color:'#888',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'It exists. You use it. You feel nothing about it.',req:'10+ votes · even split'},
+      {key:'FALLING_OFF', icon:'📉',name:'Falling Off',         cls:'badge-orange',color:'#f97316',
+       side:'smooth',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Was good once. The people remember. The people are judging.',req:'10+ votes · 60%+ scam'},
+      {key:'CASH_GRAB',   icon:'🚩',name:'Cash Grab',           cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:0.70,r100:0.70,
+       desc:'Not a brand, it\'s a trap. The marketing budget exceeds the product budget.',req:'50+ votes · 70%+ scam'},
+      {key:'SCAM',        icon:'💀',name:'Certified Scam',      cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:null,r100:0.75,
+       desc:'The internet has made its ruling. Do not give them your money.',req:'100+ votes · 75%+ scam'},
+    ]
+  }
+};
+
+// Which cats are subcategories of Thing
+const THING_SUBCATS = ['food','invention','concept','brand'];
+
+// ─────────────────────────────────────────
+//  WIKIPEDIA CATEGORY DETECTION
+//  Maps Wikipedia category keywords → suggested cat
+// ─────────────────────────────────────────
+const CAT_SIGNALS = {
+  name:      ['births','deaths','people','politicians','actors','musicians','athletes','scientists','businesspeople','writers','directors','singers','rapper','footballer','basketball','tennis','philosopher','entrepreneur','activist','poet','comedian'],
+  place:     ['countries','cities','towns','villages','districts','regions','states','islands','rivers','mountains','lakes','oceans','continents','capitals','municipalities','geographic'],
+  animal:    ['animals','mammals','birds','fish','reptiles','insects','amphibians','invertebrates','species','fauna','carnivores','herbivores','primates','felidae','canidae'],
+  food:      ['foods','dishes','cuisines','ingredients','beverages','cocktails','cheeses','breads','desserts','snacks','condiments','spices'],
+  invention: ['inventions','technology','software','hardware','gadgets','devices','machines','engineering','patents','electronics','computing','aircraft','vehicles','weapons'],
+  concept:   ['philosophy','theories','ideologies','movements','concepts','economics','psychology','political','feminism','capitalism','socialism','religion','beliefs'],
+  brand:     ['companies','brands','corporations','franchises','retailers','manufacturers','airlines','banks','media','publishers','record labels','streaming','social media'],
+};
+
+async function detectCat(wikiTitle) {
+  try {
+    // 50 visible categories, skip hidden maintenance cats
+    const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wikiTitle)}&prop=categories&cllimit=50&clshow=!hidden&format=json&origin=*`;
+    const d = await (await fetch(url)).json();
+    const pg = Object.values(d.query.pages)[0];
+    if (!pg.categories) return null;
+    const catText = pg.categories.map(c => c.title.toLowerCase()).join(' ');
+    let best = null, bestScore = 0;
+    for (const [cat, signals] of Object.entries(CAT_SIGNALS)) {
+      const score = signals.filter(s => catText.includes(s)).length;
+      if (score > bestScore) { bestScore = score; best = cat; }
+    }
+    // Require at least 2 matches to avoid false positives
+    return bestScore >= 2 ? best : null;
+  } catch { return null; }
+}
+
+// ─────────────────────────────────────────
+//  STORE
+// ─────────────────────────────────────────
+const SK = 'son_v4';
+function load(){ try{ const r=localStorage.getItem(SK); return r?JSON.parse(r):{entries:{},votes:{}}; }catch{ return{entries:{},votes:{}}; } }
+function save(){ try{ localStorage.setItem(SK,JSON.stringify(store)); }catch{} }
+let store = load();
+
+// ─────────────────────────────────────────
+//  TITLE LOGIC
+// ─────────────────────────────────────────
+function getTitle(entry) {
+  const titles = CATS[entry.cat].titles;
+  const total = entry.smooth + entry.giga;
+
+  if (total < 10) return { key:'?', icon:'🔭', name:'Too Early to Tell', cls:'badge-grey', color:'#555' };
+
+  const gP = entry.giga / total;
+  const sP = entry.smooth / total;
+
+  const tryTier = (ratioKey) => {
+    const g = titles.filter(t=>t.side==='giga'  && t[ratioKey]).sort((a,b)=>b[ratioKey]-a[ratioKey]);
+    const s = titles.filter(t=>t.side==='smooth'&& t[ratioKey]).sort((a,b)=>b[ratioKey]-a[ratioKey]);
+    for (const t of g) if (gP >= t[ratioKey]) return t;
+    for (const t of s) if (sP >= t[ratioKey]) return t;
+    return null;
+  };
+
+  if (total >= 100) {
+    const hit = tryTier('r100');
+    if (hit) return hit;
+    // divisive at 100+ with split
+    const div = titles.find(t=>t.side==='mid'&&!t.r100);
+    if (div) return div;
+  }
+  if (total >= 50) { const hit = tryTier('r50'); if (hit) return hit; }
+  const hit10 = tryTier('r10'); if (hit10) return hit10;
+
+  return titles.find(t=>t.side==='mid') || titles[Math.floor(titles.length/2)];
+}
+
+function nextHint(entry) {
+  const t = entry.smooth + entry.giga;
+  if (t < 10)  return `${10-t} more vote${t===9?'':'s'} to unlock titles`;
+  if (t < 50)  return `${50-t} more votes to unlock mid-tier titles`;
+  if (t < 100) return `${100-t} more votes to unlock legendary titles`;
+  return 'Legendary tier unlocked';
+}
+
+function badge(title) {
+  if (!title || title.key === '?') return '';
+  return `<span class="badge ${title.cls}">${title.icon} ${title.name}</span>`;
+}
+
+// ─────────────────────────────────────────
+//  CAT STATE
+// ─────────────────────────────────────────
+let curCat = 'name';
+let lbCat = 'all';
+let titlesCat = 'name';
+let thingOpen = false;
+let suggestedCat = null;
+
+// Top-level tab pick (Name, Place, Animal)
+function pickCat(cat, btn) {
+  curCat = cat;
+  // close thing subcats if we're moving away
+  if (!THING_SUBCATS.includes(cat)) {
+    thingOpen = false;
+    document.getElementById('subcatRow').style.display = 'none';
+    document.getElementById('thingParentBtn').classList.remove('active');
+    document.getElementById('thingParentBtn').textContent = '⚡ Thing ▾';
+  }
+  document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('searchInput').placeholder = CATS[cat].hint;
+  dismissSuggestion();
+  hideDD();
+}
+
+// Thing parent button — toggle subcat row
+function toggleThing(btn) {
+  thingOpen = !thingOpen;
+  const row = document.getElementById('subcatRow');
+  row.style.display = thingOpen ? 'flex' : 'none';
+  btn.textContent = thingOpen ? '⚡ Thing ▲' : '⚡ Thing ▾';
+  document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if (thingOpen) {
+    // pick whichever subcat is currently active, default food
+    const activeSub = document.querySelector('.subcat-tab.active');
+    const cat = activeSub ? activeSub.dataset.cat : 'food';
+    curCat = cat;
+    document.getElementById('searchInput').placeholder = CATS[cat].hint;
+  }
+  dismissSuggestion();
+  hideDD();
+}
+
+// Subcat tab pick (Food, Invention, Concept, Brand)
+function pickSubcat(cat, btn) {
+  curCat = cat;
+  document.querySelectorAll('.subcat-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('searchInput').placeholder = CATS[cat].hint;
+  dismissSuggestion();
+  hideDD();
+}
+
+// ─────────────────────────────────────────
+//  CATEGORY SUGGESTION BANNER
+// ─────────────────────────────────────────
+function showSuggestion(detectedCat) {
+  if (detectedCat === curCat) return;
+  // Don't nag if user is already on a Thing subcat and detected is also Thing subcat
+  if (THING_SUBCATS.includes(detectedCat) && THING_SUBCATS.includes(curCat)) return;
+  suggestedCat = detectedCat;
+  document.getElementById('catSugMsg').textContent = SUG_MSG[detectedCat] || `Try the ${detectedCat} tab?`;
+  document.getElementById('catSuggestion').style.display = 'flex';
+}
+
+function acceptSuggestion() {
+  if (!suggestedCat) return;
+  const cat = suggestedCat;
+  const cd = CATS[cat];
+  if (THING_SUBCATS.includes(cat)) {
+    // open thing parent + activate correct subcat
+    thingOpen = true;
+    document.getElementById('subcatRow').style.display = 'flex';
+    const parentBtn = document.getElementById('thingParentBtn');
+    parentBtn.classList.add('active');
+    parentBtn.textContent = '⚡ Thing ▲';
+    document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
+    parentBtn.classList.add('active');
+    document.querySelectorAll('.subcat-tab').forEach(b=>{
+      b.classList.toggle('active', b.dataset.cat === cat);
+    });
+  } else {
+    const btn = document.querySelector(`.cat-tab[data-cat="${cat}"]`);
+    if (btn) pickCat(cat, btn);
+  }
+  curCat = cat;
+  document.getElementById('searchInput').placeholder = cd.hint;
+  dismissSuggestion();
+}
+
+function dismissSuggestion() {
+  suggestedCat = null;
+  document.getElementById('catSuggestion').style.display = 'none';
+}
+
+// ─────────────────────────────────────────
+//  WIKIPEDIA
+// ─────────────────────────────────────────
+async function searchWiki(q) {
+  const url = `https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(q)}&limit=7&namespace=0&format=json&origin=*`;
+  const d = await (await fetch(url)).json();
+  return d[1].map((t,i) => ({ title:t, desc:d[2][i] }));
+}
+
+async function wikiDetails(title) {
+  const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=extracts|pageimages&exintro=true&explaintext=true&piprop=thumbnail&pithumbsize=220&format=json&origin=*`;
+  const d = await (await fetch(url)).json();
+  const pg = Object.values(d.query.pages)[0];
+  return {
+    extract: pg.extract ? pg.extract.substring(0,280)+'…' : '',
+    image:   pg.thumbnail ? pg.thumbnail.source : null,
+  };
+}
+
+// ─────────────────────────────────────────
+//  SEARCH UI
+// ─────────────────────────────────────────
+let sTimer;
+const inp = document.getElementById('searchInput');
+inp.addEventListener('input', function() {
+  clearTimeout(sTimer);
+  const q = this.value.trim();
+  if (q.length < 2) { hideDD(); return; }
+  sTimer = setTimeout(() => runSearch(q), 320);
+});
+inp.addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); if(e.key==='Escape') hideDD(); });
+document.addEventListener('click', e => { if(!e.target.closest('.search-wrap')) hideDD(); });
+
+async function runSearch(q) {
+  const dd = document.getElementById('dropdown');
+  dd.style.display = 'block';
+  dd.innerHTML = '<div style="padding:18px;text-align:center"><div class="spinner"></div></div>';
+  dismissSuggestion();
+  try {
+    const results = await searchWiki(q);
+    const cd = CATS[curCat];
+    if (!results.length) { dd.innerHTML = '<div style="padding:14px;color:#555;font-size:0.8rem;text-align:center">No results found</div>'; return; }
+    dd.innerHTML = results.map(r => `
+      <div class="drop-item" onclick="openEntry('${esc(r.title)}','${curCat}')">
+        <div class="drop-avatar">${cd.defaultAv}</div>
+        <div class="drop-info">
+          <div class="drop-name">${escH(r.title)}</div>
+          <div class="drop-desc">${escH(r.desc)}</div>
+        </div>
+        <span class="drop-cat">${cd.icon} ${cd.label}</span>
+      </div>`).join('');
+    // Background category check on first result — non-blocking
+    if (results[0]) {
+      detectCat(results[0].title).then(detected => {
+        if (detected && detected !== curCat) showSuggestion(detected);
+      }).catch(()=>{});
+    }
+  } catch { dd.innerHTML = '<div style="padding:14px;color:#555;font-size:0.8rem;text-align:center">Search error</div>'; }
+}
+
+function doSearch() { const q = inp.value.trim(); if(q) runSearch(q); }
+function hideDD() { document.getElementById('dropdown').style.display = 'none'; }
+function escH(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc(s) { return String(s).replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
+
+// ─────────────────────────────────────────
+//  MODAL
+// ─────────────────────────────────────────
+let curKey = null;
+
+async function openEntry(title, cat) {
+  hideDD();
+  inp.value = '';
+  const key = cat + '::' + title.toLowerCase().replace(/\s+/g,'_');
+  if (!store.entries[key]) store.entries[key] = { name:title, cat, smooth:0, giga:0, image:null, extract:'' };
+  curKey = key;
+  const e = store.entries[key];
+  const cd = CATS[cat];
+
+  // populate modal
+  document.getElementById('mCatLabel').textContent = cd.icon + ' ' + cd.label;
+  document.getElementById('mName').textContent = title;
+  document.getElementById('mExtract').textContent = e.extract || 'Loading…';
+  setAv(e, cd);
+  document.getElementById('vSIcon').textContent = cd.sIcon;
+  document.getElementById('vGIcon').textContent = cd.gIcon;
+  document.getElementById('vSLabel').textContent = cd.sLabel;
+  document.getElementById('vGLabel').textContent = cd.gLabel;
+  document.getElementById('sSmLabel').textContent = cd.sStatLbl;
+  document.getElementById('sGiLabel').textContent = cd.gStatLbl;
+
+  refreshStats(e);
+  refreshShare(e);
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  if (!e.extract) {
+    try {
+      const d = await wikiDetails(title);
+      e.extract = d.extract; e.image = d.image;
+      store.entries[key] = e; save();
+      document.getElementById('mExtract').textContent = e.extract || 'No description available.';
+      setAv(e, cd);
+    } catch {}
+  }
+}
+
+function setAv(e, cd) {
+  const el = document.getElementById('mAv');
+  el.innerHTML = e.image ? `<img src="${e.image}" alt="">` : cd.defaultAv;
+}
+
+function refreshStats(e) {
+  const total = e.smooth + e.giga;
+  document.getElementById('sSmooth').textContent = e.smooth;
+  document.getElementById('sGiga').textContent = e.giga;
+  document.getElementById('sTotal').textContent = total;
+
+  const bs = document.getElementById('barSection');
+  const nv = document.getElementById('nvSection');
+
+  if (total < 10) {
+    bs.style.display = 'none'; nv.style.display = 'block';
+    document.getElementById('nvMsg').textContent = `Need ${10-total} more vote${10-total===1?'':'s'} to unlock a title`;
+    document.getElementById('nvPips').innerHTML = Array.from({length:10},(_,i)=>`<div class="pip${i<total?' on':''}"></div>`).join('');
+  } else {
+    bs.style.display = 'block'; nv.style.display = 'none';
+    const gP = Math.round((e.giga/total)*100);
+    const cd = CATS[e.cat];
+    document.getElementById('barL').textContent = `${100-gP}% ${cd.sStatLbl}`;
+    document.getElementById('barR').textContent = `${gP}% ${cd.gStatLbl}`;
+    document.getElementById('barFill').style.width = gP + '%';
+  }
+
+  const title = getTitle(e);
+  document.getElementById('verdictVal').textContent = title.icon + ' ' + title.name;
+  document.getElementById('verdictVal').style.color = title.color;
+  document.getElementById('verdictHint').textContent = nextHint(e);
+  document.getElementById('mBadge').innerHTML = badge(title);
+
+  const myV = store.votes[curKey];
+  document.getElementById('btnSmooth').className = 'vote-btn smooth-btn' + (myV==='smooth'?' voted':'');
+  document.getElementById('btnGiga').className   = 'vote-btn giga-btn'   + (myV==='giga'  ?' voted':'');
+}
+
+// ─────────────────────────────────────────
+//  SHARE CARD — canvas generator
+// ─────────────────────────────────────────
+function refreshShare(e) {
+  // Draw the card on a hidden canvas, show preview as <img>
+  drawShareCard(e).then(dataUrl => {
+    document.getElementById('sharePreview').src = dataUrl;
+    document.getElementById('sharePreview').style.display = 'block';
+  });
+}
+
+async function drawShareCard(e) {
+  const canvas = document.getElementById('shareCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = 1080, H = 1080;
+  canvas.width = W; canvas.height = H;
+
+  const title = getTitle(e);
+  const cd = CATS[e.cat];
+  const total = e.smooth + e.giga;
+  const gPct = total > 0 ? Math.round((e.giga / total) * 100) : 50;
+  const sPct = 100 - gPct;
+
+  // ── Background ──
+  ctx.fillStyle = '#0d0d0d';
+  ctx.fillRect(0, 0, W, H);
+
+  // ── Watermark photo (if available) ──
+  // Drawn before glows so everything sits on top
+  if (e.image) {
+    await new Promise(resolve => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        // Cover the right ~60% of the card, centred vertically
+        const iw = img.naturalWidth, ih = img.naturalHeight;
+        const drawH = H;
+        const drawW = (iw / ih) * drawH;
+        const dx = W - drawW * 0.72; // anchor right side
+        const dy = 0;
+
+        // Save/clip to card bounds
+        ctx.save();
+        ctx.globalAlpha = 0.13; // very faded — just a ghost
+        ctx.drawImage(img, dx, dy, drawW, drawH);
+        ctx.restore();
+
+        // Dark gradient over the watermark so text stays sharp
+        // Left side fully dark, fading to semi-transparent on the right
+        const wmGrad = ctx.createLinearGradient(0, 0, W, 0);
+        wmGrad.addColorStop(0,    'rgba(13,13,13,1)');
+        wmGrad.addColorStop(0.35, 'rgba(13,13,13,0.92)');
+        wmGrad.addColorStop(0.7,  'rgba(13,13,13,0.6)');
+        wmGrad.addColorStop(1,    'rgba(13,13,13,0.35)');
+        ctx.fillStyle = wmGrad;
+        ctx.fillRect(0, 0, W, H);
+
+        resolve();
+      };
+      img.onerror = () => resolve(); // no image — carry on
+      img.src = e.image;
+    });
+  }
+
+  // Subtle top-left glow
+  const grd = ctx.createRadialGradient(0, 0, 0, 0, 0, 620);
+  grd.addColorStop(0, 'rgba(59,130,246,0.12)');
+  grd.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
+
+  // Bottom-right glow (red)
+  const grd2 = ctx.createRadialGradient(W, H, 0, W, H, 620);
+  grd2.addColorStop(0, 'rgba(229,62,62,0.10)');
+  grd2.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grd2;
+  ctx.fillRect(0, 0, W, H);
+
+  // ── Border ──
+  ctx.strokeStyle = '#272727';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(40, 40, W - 80, H - 80);
+
+  // ── Site tag top ──
+  ctx.font = '500 28px Inter, sans-serif';
+  ctx.fillStyle = '#555';
+  ctx.letterSpacing = '4px';
+  ctx.textAlign = 'left';
+  ctx.fillText('COOKED.GG', 80, 100);
+  ctx.letterSpacing = '0px';
+
+  // Divider line under tag
+  ctx.strokeStyle = '#272727';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(80, 116); ctx.lineTo(W - 80, 116); ctx.stroke();
+
+  // ── Category tag ──
+  ctx.font = '500 30px Inter, sans-serif';
+  ctx.fillStyle = '#555';
+  ctx.textAlign = 'left';
+  const parentLabel = cd.parent ? `⚡ ${cd.label}` : `${cd.icon} ${cd.label}`;
+  ctx.fillText(parentLabel.toUpperCase(), 80, 188);
+
+  // ── Entry name ──
+  ctx.fillStyle = '#efefef';
+  ctx.textAlign = 'left';
+  // Responsive font size based on name length
+  const nameLen = e.name.length;
+  const nameFontSize = nameLen > 22 ? 88 : nameLen > 14 ? 108 : 130;
+  ctx.font = `700 ${nameFontSize}px 'Bebas Neue', serif`;
+  // Word-wrap the name
+  const words = e.name.split(' ');
+  let line = '', lines = [];
+  const maxW = W - 160;
+  for (const word of words) {
+    const test = line ? line + ' ' + word : word;
+    if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = word; }
+    else line = test;
+  }
+  if (line) lines.push(line);
+  const lineH = nameFontSize * 1.05;
+  const nameY = lines.length > 2 ? 300 : 340;
+  lines.slice(0, 3).forEach((l, i) => ctx.fillText(l, 80, nameY + i * lineH));
+
+  // ── Verdict ──
+  const verdictY = nameY + lines.slice(0,3).length * lineH + 50;
+  ctx.font = '500 32px Inter, sans-serif';
+  ctx.fillStyle = '#555';
+  ctx.fillText('CURRENT VERDICT', 80, verdictY);
+
+  ctx.font = `700 68px 'Bebas Neue', serif`;
+  ctx.fillStyle = title.color;
+  ctx.fillText(`${title.icon}  ${title.name.toUpperCase()}`, 80, verdictY + 74);
+
+  // ── Vote bar ──
+  const barY = verdictY + 120;
+  const barH = 20;
+  const barW = W - 160;
+
+  // Labels
+  ctx.font = '600 30px Inter, sans-serif';
+  ctx.fillStyle = '#e53e3e';
+  ctx.textAlign = 'left';
+  ctx.fillText(`${sPct}% ${cd.sStatLbl.toUpperCase()}`, 80, barY - 14);
+  ctx.fillStyle = '#3b82f6';
+  ctx.textAlign = 'right';
+  ctx.fillText(`${gPct}% ${cd.gStatLbl.toUpperCase()}`, W - 80, barY - 14);
+
+  // Bar background
+  ctx.fillStyle = '#272727';
+  roundRect(ctx, 80, barY, barW, barH, 10);
+  ctx.fill();
+
+  // Bar fill (smooth = red left, giga = blue right)
+  if (sPct > 0) {
+    ctx.fillStyle = '#e53e3e';
+    const sw = Math.max((barW * sPct / 100) - 0, 0);
+    roundRect(ctx, 80, barY, sw, barH, 10);
+    ctx.fill();
+  }
+  if (gPct > 0) {
+    ctx.fillStyle = '#3b82f6';
+    const gw = Math.max((barW * gPct / 100) - 0, 0);
+    roundRect(ctx, 80 + barW - gw, barY, gw, barH, 10);
+    ctx.fill();
+  }
+
+  // Total votes
+  ctx.font = '500 28px Inter, sans-serif';
+  ctx.fillStyle = '#555';
+  ctx.textAlign = 'left';
+  ctx.fillText(`${total} vote${total !== 1 ? 's' : ''} so far`, 80, barY + barH + 38);
+
+  // ── CTA bottom ──
+  const ctaY = H - 120;
+
+  // divider
+  ctx.strokeStyle = '#272727';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(80, ctaY - 28); ctx.lineTo(W - 80, ctaY - 28); ctx.stroke();
+
+  ctx.font = `700 52px 'Bebas Neue', serif`;
+  ctx.fillStyle = '#efefef';
+  ctx.textAlign = 'left';
+  ctx.fillText('COOKED OR NOT? CAST YOUR VOTE', 80, ctaY + 14);
+
+  ctx.font = '600 34px Inter, sans-serif';
+  ctx.fillStyle = '#3b82f6';
+  ctx.fillText('Vote at cooked.gg', 80, ctaY + 62);
+
+  return canvas.toDataURL('image/png');
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+async function doShare() {
+  if (!curKey) return;
+  const e = store.entries[curKey];
+  const t = getTitle(e);
+  const cd = CATS[e.cat];
+  const total = e.smooth + e.giga;
+
+  const shareText = `Is ${e.name} cooked or goated? ${t.icon} Currently: ${t.name} (${total} votes)
+
+Cast your vote → cooked.gg`;
+
+  // Try Web Share API with the image (mobile)
+  if (navigator.share && navigator.canShare) {
+    try {
+      const canvas = document.getElementById('shareCanvas');
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+      const file = new File([blob], 'cooked-gg.png', { type: 'image/png' });
+      const shareData = { title: `${e.name} — cooked.gg`, text: shareText, files: [file] };
+      if (navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        return;
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') return; // user cancelled
+    }
+  }
+
+  // Fallback: Web Share API text only (no image)
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: `${e.name} — cooked.gg`, text: shareText });
+      return;
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+    }
+  }
+
+  // Desktop fallback: download the image + copy text
+  const link = document.createElement('a');
+  link.download = `cooked-gg-${e.name.replace(/\s+/g,'-').toLowerCase()}.png`;
+  link.href = document.getElementById('shareCanvas').toDataURL('image/png');
+  link.click();
+  navigator.clipboard.writeText(shareText).catch(()=>{});
+  toast('🖼️ Card saved! Text copied.');
+}
+
+function castVote(type) {
+  if (!curKey) return;
+  const e = store.entries[curKey];
+  const prev = store.votes[curKey];
+  if (prev === type) { store.votes[curKey]=null; e[type]=Math.max(0,e[type]-1); }
+  else { if(prev) e[prev]=Math.max(0,e[prev]-1); store.votes[curKey]=type; e[type]++; }
+  store.entries[curKey]=e; save();
+  refreshStats(e); refreshShare(e);
+  renderBoards(); renderBuzz();
+  const cd = CATS[e.cat];
+  const v = store.votes[curKey];
+  toast(v ? (type==='giga' ? cd.gIcon+' '+cd.gLabel+' locked in' : cd.sIcon+' '+cd.sLabel+' locked in') : 'Vote removed');
+}
+
+
+
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); document.body.style.overflow=''; curKey=null; }
+function closeModalOut(ev) { if(ev.target===document.getElementById('modalOverlay')) closeModal(); }
+
+function wk(d) {
+  const dt=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const day=dt.getUTCDay()||7; dt.setUTCDate(dt.getUTCDate()+4-day);
+  const y1=new Date(Date.UTC(dt.getUTCFullYear(),0,1));
+  return Math.ceil((((dt-y1)/86400000)+1)/7);
+}
+
+// ─────────────────────────────────────────
+//  LEADERBOARDS
+// ─────────────────────────────────────────
+function setLbCat(cat, btn) {
+  lbCat = cat;
+  document.querySelectorAll('#lbFilters .filter-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderBoards();
+}
+
+function renderBoards() {
+  let entries = Object.values(store.entries);
+  if (lbCat !== 'all') entries = entries.filter(e=>e.cat===lbCat);
+
+  const byS = [...entries].sort((a,b)=>b.smooth-a.smooth).slice(0,8);
+  const byG = [...entries].sort((a,b)=>b.giga-a.giga).slice(0,8);
+  const rk = i => i===0?'r1':i===1?'r2':i===2?'r3':'';
+
+  const row = (p,i,type) => {
+    const t = getTitle(p);
+    const cd = CATS[p.cat];
+    const count = type==='smooth' ? p.smooth : p.giga;
+    const av = p.image ? `<img src="${p.image}" alt="">` : cd.defaultAv;
+    return `<div class="lb-row" onclick="openEntry('${esc(p.name)}','${p.cat}')">
+      <span class="lb-rank ${rk(i)}">${i+1}</span>
+      <div class="lb-av">${av}</div>
+      <div class="lb-info">
+        <div class="lb-name">${escH(p.name)}</div>
+        <div class="lb-catline">${cd.parent ? '⚡ ' + cd.label : cd.icon + ' ' + cd.label}</div>
+        <div style="margin-top:3px">${badge(t)}</div>
+      </div>
+      <div class="lb-votes"><span class="lb-vnum">${count}</span>votes</div>
+    </div>`;
+  };
+
+  const empty = `<div class="empty" style="padding:28px"><div class="empty-title" style="font-size:1rem">No votes yet</div><div class="empty-sub">Go vote on something!</div></div>`;
+
+  // Update col headers
+  if (lbCat === 'all') {
+    document.getElementById('lbSIcon').textContent = '🧠💨';
+    document.getElementById('lbSTitle').textContent = 'Smooth Brain';
+    document.getElementById('lbGIcon').textContent = '⚡🧠';
+    document.getElementById('lbGTitle').textContent = 'Giga Brain';
+  } else if (CATS[lbCat]) {
+    const cd = CATS[lbCat];
+    document.getElementById('lbSIcon').textContent = cd.sIcon;
+    document.getElementById('lbSTitle').textContent = cd.sLabel;
+    document.getElementById('lbGIcon').textContent = cd.gIcon;
+    document.getElementById('lbGTitle').textContent = cd.gLabel;
+  }
+
+  document.getElementById('lbSmooth').innerHTML = byS.length ? byS.map((p,i)=>row(p,i,'smooth')).join('') : empty;
+  document.getElementById('lbGiga').innerHTML   = byG.length ? byG.map((p,i)=>row(p,i,'giga')).join('')   : empty;
+}
+
+// ─────────────────────────────────────────
+//  WEEKLY BUZZ
+// ─────────────────────────────────────────
+function renderBuzz() {
+  const entries = Object.values(store.entries).sort((a,b)=>(b.smooth+b.giga)-(a.smooth+a.giga)).slice(0,9);
+  const g = document.getElementById('buzzGrid');
+  if (!entries.length) {
+    g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div class="empty-title">Nothing yet</div><div class="empty-sub">Pick a category above and search something to get started</div></div>`;
+    return;
+  }
+  g.innerHTML = entries.map(p => {
+    const t = getTitle(p);
+    const cd = CATS[p.cat];
+    const total = p.smooth + p.giga;
+    const gP = total > 0 ? Math.round((p.giga/total)*100) : 50;
+    const av = p.image ? `<img src="${p.image}" alt="">` : cd.defaultAv;
+    return `<div class="buzz-card" onclick="openEntry('${esc(p.name)}','${p.cat}')">
+      <div class="b-avatar">${av}</div>
+      <div class="b-info">
+        <div class="b-cat">${cd.parent ? '⚡ · ' + cd.label : cd.icon + ' ' + cd.label}</div>
+        <div class="b-name">${escH(p.name)}</div>
+        <div class="b-badge">${badge(t)}</div>
+        <div class="b-bar-wrap"><div class="b-bar" style="width:${gP}%"></div></div>
+      </div>
+      <div class="b-votes"><span class="b-vnum">${total}</span>votes</div>
+    </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────
+//  TITLES PAGE
+// ─────────────────────────────────────────
+function setTitlesCat(cat, btn) {
+  titlesCat = cat;
+  document.querySelectorAll('#titlesFilter .filter-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTitles();
+}
+
+function renderTitles() {
+  const cd = CATS[titlesCat];
+  document.getElementById('titlesGrid').innerHTML = cd.titles.map(t => `
+    <div class="title-card">
+      <div class="title-card-icon">${t.icon}</div>
+      <div class="title-card-name" style="color:${t.color}">${t.name}</div>
+      <div class="title-card-desc">${t.desc}</div>
+      <div class="title-card-req">${t.req}</div>
+    </div>`).join('');
+}
+
+// ─────────────────────────────────────────
+//  NAV
+// ─────────────────────────────────────────
+function showPage(page, btn, fromBottom) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+
+  // Sync top nav tabs
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  if (!fromBottom) btn.classList.add('active');
+  // find matching top tab to keep in sync
+  const topMap = {home:'Vote',boards:'Boards',titles:'Titles'};
+  document.querySelectorAll('.nav-tab').forEach(t=>{
+    if(t.textContent.trim()===topMap[page]) t.classList.add('active');
+  });
+
+  // Sync bottom tabs
+  const btMap = {home:'btVote', boards:'btBoards', titles:'btTitles'};
+  document.querySelectorAll('.bottom-tab').forEach(t=>t.classList.remove('active'));
+  const btId = btMap[page];
+  if (btId) document.getElementById(btId)?.classList.add('active');
+
+  if (page==='boards') renderBoards();
+  if (page==='titles') renderTitles();
+}
+
+// ─────────────────────────────────────────
+//  DONATE
+// ─────────────────────────────────────────
+let dAmt = 2;
+
+function openDonate() {
+  document.getElementById('donateOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDonate() {
+  document.getElementById('donateOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function closeDonateOut(e) {
+  if (e.target === document.getElementById('donateOverlay')) closeDonate();
+}
+
+function pickAmt(btn, amt) {
+  dAmt = amt;
+  document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  // clear custom input when a preset is picked
+  const ci = document.getElementById('customAmtInput');
+  if (ci) ci.value = '';
+  updateDonateBtn();
+}
+
+function pickCustomAmt(input) {
+  const val = parseFloat(input.value);
+  if (val && val > 0) {
+    dAmt = val;
+    // deselect presets
+    document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('on'));
+  } else {
+    dAmt = 2; // fallback to lowest preset
+  }
+  updateDonateBtn();
+}
+
+function updateDonateBtn() {
+  const btn = document.getElementById('donateGoBtn');
+  if (!btn) return;
+  const msgs = [
+    `BRO IT'S JUST $${dAmt} 💀`,
+    `$${dAmt} TO KEEP THE SERVERS BREATHING`,
+    `SPEND $${dAmt} · FEEL GOOD · NO THOUGHTS`,
+    `$${dAmt} AND I WON'T SHUT THIS DOWN 🙏`,
+    `YOLO $${dAmt} — KEEP COOKED.GG ALIVE`,
+  ];
+  // pick a message based on amount so it feels dynamic
+  const idx = Math.floor(dAmt) % msgs.length;
+  btn.textContent = msgs[idx];
+}
+
+function goDonate() {
+  // TODO: replace with actual Stripe / Razorpay payment link
+  toast(`💛 $${dAmt} — Stripe coming soon! Thank you 🫀`);
+  setTimeout(closeDonate, 2000);
+}
+
+// ─────────────────────────────────────────
+//  TOAST
+// ─────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+// ─────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────
+renderBuzz();
+</script>
+</body>
+</html>
