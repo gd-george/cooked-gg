@@ -1689,9 +1689,27 @@ async function openEntry(title, cat) {
     try {
       const d = await wikiDetails(title);
       e.extract = d.extract; e.image = d.image;
-      store.entries[key] = e; save();
+      store.entries[key] = e;
       document.getElementById('mExtract').textContent = e.extract || 'No description available.';
       setAv(e, cd);
+      refreshShare(e);
+      // Save image + extract to Supabase so other devices see the photo too
+      sbFetch('/rest/v1/entries?id=eq.' + encodeURIComponent(key), {
+        method: 'PATCH',
+        headers: { 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ image: e.image, extract: e.extract })
+      }).catch(() => {
+        // Entry might not exist yet — insert it first then patch
+        sbFetch('/rest/v1/entries', {
+          method: 'POST',
+          headers: { 'Prefer': 'resolution=merge-duplicates' },
+          body: JSON.stringify({
+            id: key, name: e.name, cat: e.cat,
+            smooth: e.smooth, giga: e.giga,
+            image: e.image, extract: e.extract
+          })
+        }).catch(() => {});
+      });
     } catch {}
   }
 }
