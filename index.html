@@ -1372,10 +1372,70 @@ async function detectCat(wikiTitle) {
 // ─────────────────────────────────────────
 //  STORE
 // ─────────────────────────────────────────
-const SK = 'son_v4';
-function load(){ try{ const r=localStorage.getItem(SK); return r?JSON.parse(r):{entries:{},votes:{}}; }catch{ return{entries:{},votes:{}}; } }
-function save(){ try{ localStorage.setItem(SK,JSON.stringify(store)); }catch{} }
-let store = load();
+// ─────────────────────────────────────────
+//  SUPABASE
+// ─────────────────────────────────────────
+const SUPA_URL = 'https://zofnluijdukwbzujuarg.supabase.co';
+const SUPA_KEY = 'sb_publishable_4g_cXXTracAy_2FQplAqGw_Acx9jNlJ';
+
+async function sbFetch(path, options = {}) {
+  const res = await fetch(SUPA_URL + path, {
+    ...options,
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+// Local cache so UI stays fast — Supabase is source of truth
+const store = { entries: {}, votes: {} };
+
+// Device fingerprint — replaces localStorage vote tracking
+function getFingerprint() {
+  let fp = localStorage.getItem('cgfp');
+  if (!fp) {
+    fp = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem('cgfp', fp);
+  }
+  return fp;
+}
+const FINGERPRINT = getFingerprint();
+
+// Load top entries for buzz/leaderboard
+async function loadTopEntries() {
+  try {
+    const rows = await sbFetch('/rest/v1/entries?select=*&order=smooth.desc,giga.desc&limit=50');
+    if (rows) rows.forEach(r => { store.entries[r.id] = r; });
+  } catch(e) { console.warn('loadTopEntries:', e); }
+}
+
+// Load a single entry by id
+async function loadEntry(id) {
+  try {
+    const rows = await sbFetch(`/rest/v1/entries?id=eq.${encodeURIComponent(id)}&select=*&limit=1`);
+    if (rows && rows[0]) { store.entries[id] = rows[0]; return rows[0]; }
+  } catch(e) { console.warn('loadEntry:', e); }
+  return null;
+}
+
+// Check if this device voted on an entry
+async function loadMyVote(entryId) {
+  try {
+    const rows = await sbFetch(`/rest/v1/votes?entry_id=eq.${encodeURIComponent(entryId)}&fingerprint=eq.${FINGERPRINT}&select=vote_type&limit=1`);
+    if (rows && rows[0]) { store.votes[entryId] = rows[0].vote_type; return rows[0].vote_type; }
+  } catch(e) { console.warn('loadMyVote:', e); }
+  return null;
+}
 
 // ─────────────────────────────────────────
 //  TITLE LOGIC
@@ -1596,6 +1656,15 @@ async function openEntry(title, cat) {
   const key = cat + '::' + title.toLowerCase().replace(/\s+/g,'_');
   if (!store.entries[key]) store.entries[key] = { name:title, cat, smooth:0, giga:0, image:null, extract:'' };
   curKey = key;
+
+  // Load fresh counts from Supabase + check this device's vote
+  const [fresh, myVote] = await Promise.all([
+    loadEntry(key),
+    loadMyVote(key)
+  ]);
+  if (fresh) store.entries[key] = { ...store.entries[key], ...fresh };
+  if (myVote !== undefined) store.votes[key] = myVote;
+
   const e = store.entries[key];
   const cd = CATS[cat];
 
@@ -1918,18 +1987,51 @@ Cast your vote → cooked.gg`;
   toast('🖼️ Card saved! Text copied.');
 }
 
-function castVote(type) {
+async function castVote(type) {
   if (!curKey) return;
   const e = store.entries[curKey];
+  const cd = CATS[e.cat];
+
+  // Optimistic UI update — show the change instantly
   const prev = store.votes[curKey];
-  if (prev === type) { store.votes[curKey]=null; e[type]=Math.max(0,e[type]-1); }
-  else { if(prev) e[prev]=Math.max(0,e[prev]-1); store.votes[curKey]=type; e[type]++; }
-  store.entries[curKey]=e; save();
+  if (prev === type) {
+    store.votes[curKey] = null;
+    e[type] = Math.max(0, e[type] - 1);
+  } else {
+    if (prev) e[prev] = Math.max(0, e[prev] - 1);
+    store.votes[curKey] = type;
+    e[type]++;
+  }
+  store.entries[curKey] = e;
   refreshStats(e); refreshShare(e);
   renderBoards(); renderBuzz();
-  const cd = CATS[e.cat];
   const v = store.votes[curKey];
   toast(v ? (type==='giga' ? cd.gIcon+' '+cd.gLabel+' locked in' : cd.sIcon+' '+cd.sLabel+' locked in') : 'Vote removed');
+
+  // Send to Supabase in background
+  try {
+    const result = await sbFetch('/rest/v1/rpc/cast_vote', {
+      method: 'POST',
+      body: JSON.stringify({
+        p_entry_id:   curKey,
+        p_name:       e.name,
+        p_cat:        e.cat,
+        p_vote_type:  type,
+        p_fingerprint: FINGERPRINT
+      })
+    });
+    // Sync with server truth
+    if (result) {
+      e.smooth = result.smooth;
+      e.giga   = result.giga;
+      store.entries[curKey] = e;
+      refreshStats(e); refreshShare(e);
+      renderBoards(); renderBuzz();
+    }
+  } catch(err) {
+    console.warn('Vote sync failed:', err);
+    toast('⚠️ Vote saved locally — sync failed');
+  }
 }
 
 
@@ -1954,7 +2056,8 @@ function setLbCat(cat, btn) {
   renderBoards();
 }
 
-function renderBoards() {
+async function renderBoards() {
+  await loadTopEntries();
   let entries = Object.values(store.entries);
   if (lbCat !== 'all') entries = entries.filter(e=>e.cat===lbCat);
 
@@ -2002,7 +2105,8 @@ function renderBoards() {
 // ─────────────────────────────────────────
 //  WEEKLY BUZZ
 // ─────────────────────────────────────────
-function renderBuzz() {
+async function renderBuzz() {
+  await loadTopEntries();
   const entries = Object.values(store.entries).sort((a,b)=>(b.smooth+b.giga)-(a.smooth+a.giga)).slice(0,9);
   const g = document.getElementById('buzzGrid');
   if (!entries.length) {
@@ -2147,7 +2251,7 @@ function toast(msg) {
 // ─────────────────────────────────────────
 //  INIT
 // ─────────────────────────────────────────
-renderBuzz();
+renderBuzz();  // async — loads from Supabase on start
 </script>
 </body>
 </html>
