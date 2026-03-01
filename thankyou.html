@@ -119,18 +119,13 @@ body {
 
 /* GIF container */
 .gif-wrap {
-  width: 200px; height: 200px;
+  width: 240px; height: 200px;
   margin: 0 auto 24px;
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--border);
   background: var(--bg);
   position: relative;
-}
-.gif-wrap img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  display: block;
 }
 .gif-loading {
   position: absolute;
@@ -207,22 +202,7 @@ body {
   animation: fadeUp 0.5s 0.7s both;
 }
 
-/* New gif button */
-.new-gif-btn {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  border-radius: 6px;
-  padding: 5px 12px;
-  font-size: 0.72rem;
-  cursor: pointer;
-  margin-top: 8px;
-  transition: all 0.15s;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-.new-gif-btn:hover { color: var(--text); border-color: #444; }
+/* new-gif-btn removed */
 </style>
 </head>
 <body>
@@ -239,9 +219,13 @@ body {
 
   <div class="gif-wrap">
     <div class="gif-loading" id="gifLoading">⏳</div>
-    <img id="memeGif" alt="thank you meme" style="display:none" onload="onGifLoad()">
+    <iframe id="memeGif"
+      allowfullscreen
+      frameborder="0"
+      style="display:none;width:100%;height:100%;border:none;"
+      onload="onGifLoad()">
+    </iframe>
   </div>
-  <button class="new-gif-btn" onclick="loadGif()">🔄 different gif</button>
 
   <div class="headline" id="headline">YOU LEGEND</div>
   <p class="sub" id="subtext">Loading your message…</p>
@@ -270,21 +254,21 @@ const MSGS = [
   { h: 'IT\'S GIVING',      s: 'Generosity. Swag. <strong>A little unhinged</strong> (in the best way). Thank you.' },
 ];
 
-// ── Tenor GIF search terms ──────────────────────────────
-// Using Tenor's public embed URLs — no API key needed
-const GIF_SEARCHES = [
-  'https://media.tenor.com/x8v1oNUOmg4AAAAC/rick-astley-never-gonna-give-you-up.gif',
-  'https://media.tenor.com/zPOABsB1G6MAAAAC/wow-the-office.gif',
-  'https://media.tenor.com/CebHAPI0ZBEAAAAC/you-are-legend-the-legend.gif',
-  'https://media.tenor.com/2RMoTRdSyaMAAAAC/happy-dance.gif',
-  'https://media.tenor.com/9kSCFBvWw7MAAAAC/spongebob-praise.gif',
-  'https://media.tenor.com/IKe31fCEWekAAAAC/standing-ovation-applause.gif',
-  'https://media.tenor.com/0dGShT5UMiQAAAAC/monkey-puppet-happy.gif',
-  'https://media.tenor.com/dRFukaVCb8UAAAAC/pepe-clap.gif',
-  'https://media.tenor.com/R2aONISOZCYAAAAC/happy-cat.gif',
-  'https://media.tenor.com/ZOimbFIIMTQAAAAC/cat-happy-dance.gif',
-  'https://media.tenor.com/GDMagbjomNQAAAAC/dogecoin-doge.gif',
-  'https://media.tenor.com/FtkUTnBDIncAAAAC/the-office-michael-scott.gif',
+// ── Giphy embed IDs — stable, no CORS, no API key needed ──
+// Format: https://giphy.com/embed/{ID}
+const GIF_IDS = [
+  '3oz8xAFtqoOUUrsh7W',  // thank you bow
+  'l0MYt5jPR6QX5pnqM',  // spongebob imagination
+  'xT9IgG50Lg7russbD6',  // minions cheering
+  'g9582DNuQppxC',       // dog clapping
+  '5GoVLqeAOo6PK',       // cat dancing
+  'ZfK4cXKJTTay1Ava0l',  // confetti celebration
+  'artj92V8o75KAT7rCX',  // shrek celebration
+  '3oEjHFOscgNwdSRRDy',  // party time
+  'l0HlBO7eyXzSZkJri',   // michael scott
+  'GStaAGaqjSUPC',       // money shower
+  'PgTv4gKafMwhy',       // standing ovation
+  'QpVUMRUJGokfqXyM7',   // happy dance
 ];
 
 let usedGifs = new Set();
@@ -312,8 +296,8 @@ function loadGif() {
   loading.style.display = 'flex';
   loading.textContent = '⏳';
 
-  const { item: url } = getRandom(GIF_SEARCHES, usedGifs);
-  gif.src = url;
+  const { item: id } = getRandom(GIF_IDS, usedGifs);
+  gif.src = `https://giphy.com/embed/${id}`;
 }
 
 function onGifLoad() {
