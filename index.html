@@ -1770,6 +1770,7 @@ function refreshStats(e) {
 // ─────────────────────────────────────────
 function refreshShare(e) {
   // Draw the card on a hidden canvas, show preview as <img>
+  // Uses cached data — doShare() will re-fetch live before actually sharing
   drawShareCard(e).then(dataUrl => {
     document.getElementById('sharePreview').src = dataUrl;
     document.getElementById('sharePreview').style.display = 'block';
@@ -1974,6 +1975,29 @@ function roundRect(ctx, x, y, w, h, r) {
 
 async function doShare() {
   if (!curKey) return;
+
+  // Show loading state on button
+  const btn = document.getElementById('shareBtn');
+  const origText = btn.innerHTML;
+  btn.innerHTML = '<span>⏳</span> Fetching live votes…';
+  btn.disabled = true;
+
+  // Pull the absolute freshest counts from Supabase right now
+  // so the card shows the real number at the moment of sharing
+  try {
+    const fresh = await loadEntry(curKey);
+    if (fresh) {
+      store.entries[curKey] = { ...store.entries[curKey], ...fresh };
+      // Redraw card with live numbers
+      await refreshShareAsync(store.entries[curKey]);
+    }
+  } catch(err) {
+    console.warn('Live count fetch failed, using cached:', err);
+  }
+
+  btn.innerHTML = origText;
+  btn.disabled = false;
+
   const e = store.entries[curKey];
   const t = getTitle(e);
   const cd = CATS[e.cat];
@@ -1983,7 +2007,7 @@ async function doShare() {
 
 Cast your vote → cooked.gg`;
 
-  // Try Web Share API with the image (mobile)
+  // Try Web Share API with image (mobile)
   if (navigator.share && navigator.canShare) {
     try {
       const canvas = document.getElementById('shareCanvas');
@@ -1995,11 +2019,11 @@ Cast your vote → cooked.gg`;
         return;
       }
     } catch (err) {
-      if (err.name === 'AbortError') return; // user cancelled
+      if (err.name === 'AbortError') return;
     }
   }
 
-  // Fallback: Web Share API text only (no image)
+  // Fallback: Web Share API text only
   if (navigator.share) {
     try {
       await navigator.share({ title: `${e.name} — cooked.gg`, text: shareText });
@@ -2009,13 +2033,21 @@ Cast your vote → cooked.gg`;
     }
   }
 
-  // Desktop fallback: download the image + copy text
+  // Desktop fallback: download image + copy text
   const link = document.createElement('a');
   link.download = `cooked-gg-${e.name.replace(/\s+/g,'-').toLowerCase()}.png`;
   link.href = document.getElementById('shareCanvas').toDataURL('image/png');
   link.click();
   navigator.clipboard.writeText(shareText).catch(()=>{});
   toast('🖼️ Card saved! Text copied.');
+}
+
+// Async version of refreshShare that returns a promise
+// so doShare can await the card redraw before sharing
+async function refreshShareAsync(e) {
+  const dataUrl = await drawShareCard(e);
+  document.getElementById('sharePreview').src = dataUrl;
+  document.getElementById('sharePreview').style.display = 'block';
 }
 
 // ─────────────────────────────────────────
