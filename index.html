@@ -1748,6 +1748,13 @@ function pickCat(cat, btn) {
 
 // Thing parent button — toggle subcat row
 function toggleThing(btn) {
+  // Close Ent if open
+  if (entOpen) {
+    entOpen = false;
+    document.getElementById('entSubcatRow').style.display = 'none';
+    document.getElementById('entParentBtn').classList.remove('active');
+    document.getElementById('entParentBtn').textContent = '🎬 Ent ▾';
+  }
   thingOpen = !thingOpen;
   const row = document.getElementById('subcatRow');
   row.style.display = thingOpen ? 'flex' : 'none';
