@@ -1062,22 +1062,18 @@ nav {
       <div class="next-feat"><div class="next-feat-icon">🏆</div><div class="next-feat-text"><strong>Monthly Hall of Fame</strong><span>Top entries get a permanent archive spot.</span></div></div>
       <div class="next-feat"><div class="next-feat-icon">📊</div><div class="next-feat-text"><strong>Drama Charts</strong><span>Watch reputations rise and collapse over time.</span></div></div>
     </div>
-    <div class="amount-row">
-      <button class="amt-btn on" onclick="pickAmt(this,2)">$2</button>
-      <button class="amt-btn" onclick="pickAmt(this,4)">$4</button>
-      <button class="amt-btn" onclick="pickAmt(this,8)">$8</button>
-      <button class="amt-btn" onclick="pickAmt(this,16)">$16</button>
-      <button class="amt-btn" onclick="pickAmt(this,32)">$32 👑</button>
+    <div class="amount-row" id="amountRow">
+      <!-- filled dynamically based on country -->
     </div>
 
     <div class="custom-amount-row">
-      <span class="custom-amt-label">$</span>
+      <span class="custom-amt-label" id="currencySymbol">₹</span>
       <input
         id="customAmtInput"
         class="custom-amount-input with-prefix"
         type="number"
         min="1"
-        max="9999"
+        max="999999"
         placeholder="Other amount"
         oninput="pickCustomAmt(this)"
       >
@@ -2286,11 +2282,48 @@ function showPage(page, btn, fromBottom) {
 // ─────────────────────────────────────────
 //  DONATE
 // ─────────────────────────────────────────
-let dAmt = 2;
+// ─────────────────────────────────────────
+//  DONATE — country-aware
+// ─────────────────────────────────────────
+const RAZORPAY_LINK = 'https://rzp.io/rzp/ZxrbiE0';
+
+// Detect if user is in India via browser locale/timezone
+function isIndia() {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz && tz.startsWith('Asia/Kolkata')) return true;
+    const lang = navigator.language || navigator.userLanguage || '';
+    if (lang.toLowerCase().includes('en-in')) return true;
+  } catch(e) {}
+  return false;
+}
+
+const india = isIndia();
+// Indian amounts (₹) — binary sequence you picked
+const IN_AMTS  = [32, 64, 128, 256, 512];
+// International amounts ($) — original binary sequence
+const INT_AMTS = [2, 4, 8, 16, 32];
+const AMTS     = india ? IN_AMTS  : INT_AMTS;
+const SYMBOL   = india ? '₹'      : '$';
+// Default to first preset
+let dAmt = AMTS[0];
+
+function buildAmountRow() {
+  const row = document.getElementById('amountRow');
+  const sym = document.getElementById('currencySymbol');
+  if (sym) sym.textContent = SYMBOL;
+  if (!row) return;
+  row.innerHTML = AMTS.map((a, i) => {
+    const crown = i === AMTS.length - 1 ? ' 👑' : '';
+    return `<button class="amt-btn${i===0?' on':''}" onclick="pickAmt(this,${a})">${SYMBOL}${a}${crown}</button>`;
+  }).join('');
+  updateDonateBtn();
+}
 
 function openDonate() {
   document.getElementById('donateOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+  buildAmountRow();
 }
 function closeDonate() {
   document.getElementById('donateOverlay').classList.remove('open');
@@ -2304,7 +2337,6 @@ function pickAmt(btn, amt) {
   dAmt = amt;
   document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
-  // clear custom input when a preset is picked
   const ci = document.getElementById('customAmtInput');
   if (ci) ci.value = '';
   updateDonateBtn();
@@ -2314,10 +2346,9 @@ function pickCustomAmt(input) {
   const val = parseFloat(input.value);
   if (val && val > 0) {
     dAmt = val;
-    // deselect presets
     document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('on'));
   } else {
-    dAmt = 2; // fallback to lowest preset
+    dAmt = AMTS[0];
   }
   updateDonateBtn();
 }
@@ -2325,22 +2356,36 @@ function pickCustomAmt(input) {
 function updateDonateBtn() {
   const btn = document.getElementById('donateGoBtn');
   if (!btn) return;
-  const msgs = [
-    `BRO IT'S JUST $${dAmt} 💀`,
-    `$${dAmt} TO KEEP THE SERVERS BREATHING`,
-    `SPEND $${dAmt} · FEEL GOOD · NO THOUGHTS`,
-    `$${dAmt} AND I WON'T SHUT THIS DOWN 🙏`,
-    `YOLO $${dAmt} — KEEP COOKED.GG ALIVE`,
+  const sym = SYMBOL;
+  const msgs = india ? [
+    `BRO IT'S JUST ${sym}${dAmt} 💀`,
+    `${sym}${dAmt} SE SERVER ZINDA RAHEGA`,
+    `KHARCH KAR ${sym}${dAmt} · NO THOUGHTS`,
+    `${sym}${dAmt} DO AUR SITE MAT BAND KARO 🙏`,
+    `YOLO ${sym}${dAmt} — COOKED.GG ALIVE RAKHEIN`,
+  ] : [
+    `BRO IT'S JUST ${sym}${dAmt} 💀`,
+    `${sym}${dAmt} TO KEEP THE SERVERS BREATHING`,
+    `SPEND ${sym}${dAmt} · FEEL GOOD · NO THOUGHTS`,
+    `${sym}${dAmt} AND I WON'T SHUT THIS DOWN 🙏`,
+    `YOLO ${sym}${dAmt} — KEEP COOKED.GG ALIVE`,
   ];
-  // pick a message based on amount so it feels dynamic
   const idx = Math.floor(dAmt) % msgs.length;
   btn.textContent = msgs[idx];
 }
 
 function goDonate() {
-  // TODO: replace with actual Stripe / Razorpay payment link
-  toast(`💛 $${dAmt} — Stripe coming soon! Thank you 🫀`);
-  setTimeout(closeDonate, 2000);
+  // Pass amount as a query param — Razorpay Payment Page picks it up
+  // Amount must be in paise for Razorpay (₹1 = 100 paise)
+  // For international users we still use Razorpay for now
+  const amountInPaise = india
+    ? Math.round(dAmt * 100)           // ₹32 → 3200 paise
+    : Math.round(dAmt * 83.5 * 100);   // $2 → ~₹16700 paise (approx fx)
+
+  const url = `${RAZORPAY_LINK}?amount=${amountInPaise}`;
+  window.open(url, '_blank');
+  closeDonate();
+  toast(`💛 Opening payment — thank you! 🫀`);
 }
 
 // ─────────────────────────────────────────
