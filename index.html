@@ -769,6 +769,61 @@ nav {
 .share-btn:hover { opacity: 0.88; }
 .share-btn:disabled { opacity: 0.45; cursor: default; }
 
+/* ── FEEDBACK PAGE ── */
+.feedback-wrap { max-width: 560px; }
+.feedback-intro { color: var(--muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 28px; }
+.feedback-form { display: flex; flex-direction: column; gap: 20px; }
+.fb-field { display: flex; flex-direction: column; gap: 8px; }
+.fb-label { font-size: 0.8rem; font-weight: 600; color: var(--text); letter-spacing: 0.3px; }
+.fb-optional { font-weight: 400; color: var(--muted); }
+.fb-type-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.fb-type {
+  padding: 7px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.fb-type:hover { color: var(--text); border-color: var(--border-light); }
+.fb-type.on { background: var(--card); color: var(--text); border-color: var(--border-light); }
+
+.fb-textarea, .fb-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.15s;
+  resize: vertical;
+  width: 100%;
+  box-sizing: border-box;
+}
+.fb-textarea::placeholder, .fb-input::placeholder { color: var(--muted); }
+.fb-textarea:focus, .fb-input:focus { border-color: var(--border-light); }
+
+.fb-submit {
+  padding: 12px;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  letter-spacing: 0.5px;
+}
+.fb-submit:hover { opacity: 0.88; }
+.fb-submit:disabled { opacity: 0.45; cursor: default; }
+.fb-fine { font-size: 0.7rem; color: var(--muted); text-align: center; margin-top: -8px; }
+
 /* ── TITLES PAGE ── */
 .titles-filter { display: flex; gap: 6px; margin-bottom: 24px; flex-wrap: wrap; }
 
@@ -889,6 +944,7 @@ nav {
     <button class="nav-tab active" onclick="showPage('home',this)">Vote</button>
     <button class="nav-tab" onclick="showPage('boards',this)">Boards</button>
     <button class="nav-tab" onclick="showPage('titles',this)">Titles</button>
+    <button class="nav-tab" onclick="showPage('feedback',this)">Feedback</button>
   </div>
   <button class="donate-pill" onclick="openDonate()">☕ Support</button>
 </nav>
@@ -980,6 +1036,40 @@ nav {
   </div>
 </div>
 
+<!-- FEEDBACK PAGE -->
+<div class="page" id="page-feedback">
+  <div class="main">
+    <div class="section-head">
+      <h2>💬 Feedback</h2>
+      <span class="section-sub">Roast us. Praise us. Whatever.</span>
+    </div>
+    <div class="feedback-wrap">
+      <p class="feedback-intro">Found a bug? Want a feature? Think something is cooked about the site itself? Tell us. We actually read these.</p>
+      <div class="feedback-form">
+        <div class="fb-field">
+          <label class="fb-label">What's your feedback about?</label>
+          <div class="fb-type-row">
+            <button class="fb-type on" onclick="pickFbType(this,'bug')">🐛 Bug</button>
+            <button class="fb-type" onclick="pickFbType(this,'feature')">💡 Feature idea</button>
+            <button class="fb-type" onclick="pickFbType(this,'content')">🗂️ Wrong category</button>
+            <button class="fb-type" onclick="pickFbType(this,'other')">💬 Other</button>
+          </div>
+        </div>
+        <div class="fb-field">
+          <label class="fb-label">Your message</label>
+          <textarea id="fbMessage" class="fb-textarea" placeholder="Tell us what's cooked…" rows="5"></textarea>
+        </div>
+        <div class="fb-field">
+          <label class="fb-label">Email <span class="fb-optional">(optional — only if you want a reply)</span></label>
+          <input id="fbEmail" class="fb-input" type="email" placeholder="you@example.com">
+        </div>
+        <button class="fb-submit" onclick="submitFeedback()">Send it 🚀</button>
+        <div class="fb-fine">Goes straight to the developer. No AI reads this. Promise.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- VOTE MODAL -->
 <div class="overlay" id="modalOverlay" onclick="closeModalOut(event)">
   <div class="modal">
@@ -1057,30 +1147,12 @@ nav {
     <p class="donate-sub">Server bills are real. Motivation is not free.<br><strong>No ads. No VC money. No subscriptions.</strong><br>Just one guy, one file, and the internet deciding what's cooked. 💀</p>
     <div class="next-box">
       <div class="next-label">What your money builds next</div>
-      <div class="next-feat"><div class="next-feat-icon">🃏</div><div class="next-feat-text"><strong>Shareable Verdict Cards</strong><span>A stamped, story-ready card — "Certified Goated · Week 12"</span></div></div>
       <div class="next-feat"><div class="next-feat-icon">⚔️</div><div class="next-feat-text"><strong>Head-to-Head Battles</strong><span>A vs B — cooked or goated? Let the internet settle it.</span></div></div>
       <div class="next-feat"><div class="next-feat-icon">🏆</div><div class="next-feat-text"><strong>Monthly Hall of Fame</strong><span>Top entries get a permanent archive spot.</span></div></div>
       <div class="next-feat"><div class="next-feat-icon">📊</div><div class="next-feat-text"><strong>Drama Charts</strong><span>Watch reputations rise and collapse over time.</span></div></div>
     </div>
-    <div class="amount-row" id="amountRow">
-      <!-- filled dynamically based on country -->
-    </div>
-
-    <div class="custom-amount-row">
-      <span class="custom-amt-label" id="currencySymbol">₹</span>
-      <input
-        id="customAmtInput"
-        class="custom-amount-input with-prefix"
-        type="number"
-        min="1"
-        max="999999"
-        placeholder="Other amount"
-        oninput="pickCustomAmt(this)"
-      >
-    </div>
-
-    <button class="donate-go" onclick="goDonate()" id="donateGoBtn">SUPPORT THE SITE ⚡</button>
-    <div class="donate-fine" id="donateFine">one-time · no regrets · keeps the site alive 🫀</div>
+    <button class="donate-go" onclick="goDonate()">THROW MONEY AT THIS 💸</button>
+    <div class="donate-fine">you decide the amount · razorpay · no regrets 🫀</div>
   </div>
 </div>
 
@@ -1096,6 +1168,9 @@ nav {
   </button>
   <button class="bottom-tab"        id="btTitles" onclick="showPage('titles',this,true)">
     <span class="bottom-tab-icon">🎖️</span>Titles
+  </button>
+  <button class="bottom-tab"        id="btFeedback" onclick="showPage('feedback',this,true)">
+    <span class="bottom-tab-icon">💬</span>Feedback
   </button>
   <button class="bottom-tab"        id="btSupport" onclick="openDonate()">
     <span class="bottom-tab-icon">☕</span>Support
@@ -2263,14 +2338,13 @@ function showPage(page, btn, fromBottom) {
   // Sync top nav tabs
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   if (!fromBottom) btn.classList.add('active');
-  // find matching top tab to keep in sync
-  const topMap = {home:'Vote',boards:'Boards',titles:'Titles'};
+  const topMap = {home:'Vote', boards:'Boards', titles:'Titles', feedback:'Feedback'};
   document.querySelectorAll('.nav-tab').forEach(t=>{
     if(t.textContent.trim()===topMap[page]) t.classList.add('active');
   });
 
   // Sync bottom tabs
-  const btMap = {home:'btVote', boards:'btBoards', titles:'btTitles'};
+  const btMap = {home:'btVote', boards:'btBoards', titles:'btTitles', feedback:'btFeedback'};
   document.querySelectorAll('.bottom-tab').forEach(t=>t.classList.remove('active'));
   const btId = btMap[page];
   if (btId) document.getElementById(btId)?.classList.add('active');
@@ -2283,47 +2357,13 @@ function showPage(page, btn, fromBottom) {
 //  DONATE
 // ─────────────────────────────────────────
 // ─────────────────────────────────────────
-//  DONATE — country-aware
+//  DONATE
 // ─────────────────────────────────────────
 const RAZORPAY_LINK = 'https://rzp.io/rzp/ZxrbiE0';
-
-// Detect if user is in India via browser locale/timezone
-function isIndia() {
-  try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (tz && tz.startsWith('Asia/Kolkata')) return true;
-    const lang = navigator.language || navigator.userLanguage || '';
-    if (lang.toLowerCase().includes('en-in')) return true;
-  } catch(e) {}
-  return false;
-}
-
-const india = isIndia();
-// Indian amounts (₹) — binary sequence you picked
-const IN_AMTS  = [32, 64, 128, 256, 512];
-// International amounts ($) — original binary sequence
-const INT_AMTS = [2, 4, 8, 16, 32];
-const AMTS     = india ? IN_AMTS  : INT_AMTS;
-const SYMBOL   = india ? '₹'      : '$';
-// Default to first preset
-let dAmt = AMTS[0];
-
-function buildAmountRow() {
-  const row = document.getElementById('amountRow');
-  const sym = document.getElementById('currencySymbol');
-  if (sym) sym.textContent = SYMBOL;
-  if (!row) return;
-  row.innerHTML = AMTS.map((a, i) => {
-    const crown = i === AMTS.length - 1 ? ' 👑' : '';
-    return `<button class="amt-btn${i===0?' on':''}" onclick="pickAmt(this,${a})">${SYMBOL}${a}${crown}</button>`;
-  }).join('');
-  updateDonateBtn();
-}
 
 function openDonate() {
   document.getElementById('donateOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
-  buildAmountRow();
 }
 function closeDonate() {
   document.getElementById('donateOverlay').classList.remove('open');
@@ -2332,60 +2372,59 @@ function closeDonate() {
 function closeDonateOut(e) {
   if (e.target === document.getElementById('donateOverlay')) closeDonate();
 }
-
-function pickAmt(btn, amt) {
-  dAmt = amt;
-  document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  const ci = document.getElementById('customAmtInput');
-  if (ci) ci.value = '';
-  updateDonateBtn();
-}
-
-function pickCustomAmt(input) {
-  const val = parseFloat(input.value);
-  if (val && val > 0) {
-    dAmt = val;
-    document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('on'));
-  } else {
-    dAmt = AMTS[0];
-  }
-  updateDonateBtn();
-}
-
-function updateDonateBtn() {
-  const btn = document.getElementById('donateGoBtn');
-  if (!btn) return;
-  const sym = SYMBOL;
-  const msgs = india ? [
-    `BRO IT'S JUST ${sym}${dAmt} 💀`,
-    `${sym}${dAmt} SE SERVER ZINDA RAHEGA`,
-    `KHARCH KAR ${sym}${dAmt} · NO THOUGHTS`,
-    `${sym}${dAmt} DO AUR SITE MAT BAND KARO 🙏`,
-    `YOLO ${sym}${dAmt} — COOKED.GG ALIVE RAKHEIN`,
-  ] : [
-    `BRO IT'S JUST ${sym}${dAmt} 💀`,
-    `${sym}${dAmt} TO KEEP THE SERVERS BREATHING`,
-    `SPEND ${sym}${dAmt} · FEEL GOOD · NO THOUGHTS`,
-    `${sym}${dAmt} AND I WON'T SHUT THIS DOWN 🙏`,
-    `YOLO ${sym}${dAmt} — KEEP COOKED.GG ALIVE`,
-  ];
-  const idx = Math.floor(dAmt) % msgs.length;
-  btn.textContent = msgs[idx];
-}
-
 function goDonate() {
-  // Pass amount as a query param — Razorpay Payment Page picks it up
-  // Amount must be in paise for Razorpay (₹1 = 100 paise)
-  // For international users we still use Razorpay for now
-  const amountInPaise = india
-    ? Math.round(dAmt * 100)           // ₹32 → 3200 paise
-    : Math.round(dAmt * 83.5 * 100);   // $2 → ~₹16700 paise (approx fx)
-
-  const url = `${RAZORPAY_LINK}?amount=${amountInPaise}`;
-  window.open(url, '_blank');
+  window.open(RAZORPAY_LINK, '_blank');
   closeDonate();
-  toast(`💛 Opening payment — thank you! 🫀`);
+  toast('💛 Thank you! Redirecting to payment 🫀');
+}
+
+// ─────────────────────────────────────────
+//  FEEDBACK
+// ─────────────────────────────────────────
+let fbType = 'bug';
+
+function pickFbType(btn, type) {
+  fbType = type;
+  document.querySelectorAll('.fb-type').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+async function submitFeedback() {
+  const msg = document.getElementById('fbMessage').value.trim();
+  const email = document.getElementById('fbEmail').value.trim();
+  if (!msg) { toast('✏️ Write something first!'); return; }
+
+  const btn = document.querySelector('.fb-submit');
+  btn.textContent = 'Sending…';
+  btn.disabled = true;
+
+  try {
+    // Save feedback to Supabase feedback table
+    await sbFetch('/rest/v1/feedback', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        type: fbType,
+        message: msg,
+        email: email || null,
+        fingerprint: FINGERPRINT,
+      })
+    });
+    toast('🚀 Sent! Thanks for the feedback.');
+    document.getElementById('fbMessage').value = '';
+    document.getElementById('fbEmail').value = '';
+    btn.textContent = '✓ Sent!';
+    setTimeout(() => { btn.textContent = 'Send it 🚀'; btn.disabled = false; }, 2500);
+  } catch(err) {
+    console.warn('Feedback error:', err);
+    // Fallback — open email
+    const subject = encodeURIComponent(`cooked.gg feedback — ${fbType}`);
+    const body = encodeURIComponent(msg);
+    window.open(`mailto:?subject=${subject}&body=${body}`);
+    toast('⚠️ DB save failed — opening email instead');
+    btn.textContent = 'Send it 🚀';
+    btn.disabled = false;
+  }
 }
 
 // ─────────────────────────────────────────
