@@ -126,6 +126,47 @@ body {
   border: 1px solid var(--border);
   background: var(--bg);
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.meme-anim {
+  width: 100%; height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Bounce animation for main emoji */
+@keyframes bigBounce {
+  0%,100% { transform: scale(1) rotate(0deg); }
+  25%      { transform: scale(1.3) rotate(-8deg); }
+  50%      { transform: scale(0.9) rotate(4deg); }
+  75%      { transform: scale(1.2) rotate(-4deg); }
+}
+
+/* Floating mini emojis */
+@keyframes floatUp {
+  0%   { transform: translateY(0) scale(0); opacity: 0; }
+  20%  { opacity: 1; transform: translateY(-20px) scale(1); }
+  100% { transform: translateY(-160px) scale(0.5); opacity: 0; }
+}
+
+.meme-main {
+  animation: bigBounce 0.6s ease-in-out infinite;
+  z-index: 2;
+  filter: drop-shadow(0 0 20px rgba(212,160,23,0.6));
+}
+
+.meme-particle {
+  position: absolute;
+  font-size: 1.4rem;
+  animation: floatUp 1.8s ease-out infinite;
+  pointer-events: none;
 }
 .gif-loading {
   position: absolute;
@@ -217,14 +258,8 @@ body {
 <div class="card">
   <div class="logo">COOKED<span>.GG</span></div>
 
-  <div class="gif-wrap">
-    <div class="gif-loading" id="gifLoading">⏳</div>
-    <iframe id="memeGif"
-      allowfullscreen
-      frameborder="0"
-      style="display:none;width:100%;height:100%;border:none;"
-      onload="onGifLoad()">
-    </iframe>
+  <div class="gif-wrap" id="gifWrap">
+    <div class="meme-anim" id="memeAnim"></div>
   </div>
 
   <div class="headline" id="headline">YOU LEGEND</div>
@@ -254,21 +289,16 @@ const MSGS = [
   { h: 'IT\'S GIVING',      s: 'Generosity. Swag. <strong>A little unhinged</strong> (in the best way). Thank you.' },
 ];
 
-// ── Giphy embed IDs — stable, no CORS, no API key needed ──
-// Format: https://giphy.com/embed/{ID}
-const GIF_IDS = [
-  '3oz8xAFtqoOUUrsh7W',  // thank you bow
-  'l0MYt5jPR6QX5pnqM',  // spongebob imagination
-  'xT9IgG50Lg7russbD6',  // minions cheering
-  'g9582DNuQppxC',       // dog clapping
-  '5GoVLqeAOo6PK',       // cat dancing
-  'ZfK4cXKJTTay1Ava0l',  // confetti celebration
-  'artj92V8o75KAT7rCX',  // shrek celebration
-  '3oEjHFOscgNwdSRRDy',  // party time
-  'l0HlBO7eyXzSZkJri',   // michael scott
-  'GStaAGaqjSUPC',       // money shower
-  'PgTv4gKafMwhy',       // standing ovation
-  'QpVUMRUJGokfqXyM7',   // happy dance
+// ── Meme animation configs — emoji + particles, zero dependencies ──
+const MEME_SCENES = [
+  { main: '🫡', particles: ['💰','💸','🤑','✨','💛'], bg: 'rgba(212,160,23,0.08)' },
+  { main: '🐐', particles: ['👑','⚡','🔥','✨','💥'], bg: 'rgba(229,62,62,0.08)' },
+  { main: '🫶', particles: ['❤️','💛','💙','💚','🩷'], bg: 'rgba(59,130,246,0.08)' },
+  { main: '🤯', particles: ['💥','⚡','🔥','✨','💫'], bg: 'rgba(249,115,22,0.08)' },
+  { main: '👑', particles: ['💰','⚡','✨','🎉','🏆'], bg: 'rgba(212,160,23,0.1)'  },
+  { main: '🙌', particles: ['🎉','🎊','✨','💛','🔥'], bg: 'rgba(34,197,94,0.08)'  },
+  { main: '🫀', particles: ['💛','❤️','🔥','✨','💪'], bg: 'rgba(229,62,62,0.08)' },
+  { main: '⚡', particles: ['💥','🔥','✨','⚡','💫'], bg: 'rgba(59,130,246,0.08)' },
 ];
 
 let usedGifs = new Set();
@@ -290,19 +320,23 @@ function setMessage() {
 }
 
 function loadGif() {
-  const gif = document.getElementById('memeGif');
-  const loading = document.getElementById('gifLoading');
-  gif.style.display = 'none';
-  loading.style.display = 'flex';
-  loading.textContent = '⏳';
+  const { item: scene } = getRandom(MEME_SCENES, usedGifs);
+  const wrap = document.getElementById('memeAnim');
+  wrap.style.background = scene.bg;
 
-  const { item: id } = getRandom(GIF_IDS, usedGifs);
-  gif.src = `https://giphy.com/embed/${id}`;
-}
+  // Stagger 4 particles at random positions
+  const particles = scene.particles
+    .slice(0, 4)
+    .map((p, i) => {
+      const left = 10 + Math.random() * 80;
+      const delay = (i * 0.45).toFixed(2);
+      return `<span class="meme-particle" style="left:${left}%;bottom:0;animation-delay:${delay}s">${p}</span>`;
+    }).join('');
 
-function onGifLoad() {
-  document.getElementById('gifLoading').style.display = 'none';
-  document.getElementById('memeGif').style.display = 'block';
+  wrap.innerHTML = `
+    <span class="meme-main">${scene.main}</span>
+    ${particles}
+  `;
 }
 
 // ── Confetti ────────────────────────────────────────────
@@ -331,7 +365,7 @@ function launchConfetti() {
 
 // ── Init ────────────────────────────────────────────────
 setMessage();
-loadGif();
+loadGif();   // loads meme animation scene
 setTimeout(launchConfetti, 200);
 </script>
 </body>
