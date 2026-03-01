@@ -418,47 +418,47 @@ nav {
 /* ── BUZZ GRID ── */
 .buzz-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
   margin-bottom: 56px;
 }
 
 .buzz-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px 16px;
+  border-radius: 10px;
+  padding: 18px 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 12px;
-  transition: border-color 0.15s;
+  gap: 14px;
+  transition: border-color 0.15s, background 0.15s;
 }
 
-.buzz-card:hover { border-color: var(--border-light); }
+.buzz-card:hover { border-color: var(--border-light); background: var(--card); }
 
 .b-avatar {
-  width: 40px; height: 40px;
+  width: 52px; height: 52px;
   border-radius: 50%;
   background: var(--card);
   border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   overflow: hidden;
   flex-shrink: 0;
 }
 .b-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
 .b-info { flex: 1; min-width: 0; }
-.b-cat { font-size: 0.65rem; color: var(--muted); margin-bottom: 2px; }
-.b-name { font-weight: 600; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.b-badge { margin-top: 4px; }
+.b-cat { font-size: 0.68rem; color: var(--muted); margin-bottom: 3px; }
+.b-name { font-weight: 700; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.b-badge { margin-top: 5px; }
 
-.b-bar-wrap { margin-top: 6px; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.b-bar-wrap { margin-top: 7px; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
 .b-bar { height: 100%; background: linear-gradient(90deg, var(--red), var(--blue)); border-radius: 2px; transition: width 0.4s; }
 
 .b-votes { font-size: 0.7rem; color: var(--muted); flex-shrink: 0; text-align: right; }
-.b-vnum { font-size: 0.88rem; color: var(--text); display: block; font-weight: 600; }
+.b-vnum { font-size: 1rem; color: var(--text); display: block; font-weight: 700; }
 
 /* ── LEADERBOARD ── */
 .filter-row {
@@ -507,7 +507,7 @@ nav {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 11px 20px;
+  padding: 10px 20px;
   border-bottom: 1px solid rgba(255,255,255,0.04);
   cursor: pointer;
   transition: background 0.1s;
@@ -516,10 +516,18 @@ nav {
 .lb-row:hover { background: rgba(255,255,255,0.03); }
 .lb-row:last-child { border-bottom: none; }
 
+/* Rank 1 — biggest */
+.lb-row.rank-1 { padding: 16px 20px; background: rgba(212,160,23,0.04); }
+.lb-row.rank-1:hover { background: rgba(212,160,23,0.08); }
+/* Rank 2 */
+.lb-row.rank-2 { padding: 14px 20px; background: rgba(255,255,255,0.02); }
+/* Rank 3 */
+.lb-row.rank-3 { padding: 12px 20px; }
+
 .lb-rank { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--muted); width: 22px; flex-shrink: 0; }
-.lb-rank.r1 { color: var(--gold); }
-.lb-rank.r2 { color: #aaa; }
-.lb-rank.r3 { color: #b87333; }
+.lb-rank.r1 { color: var(--gold); font-size: 1.4rem; }
+.lb-rank.r2 { color: #aaa; font-size: 1.25rem; }
+.lb-rank.r3 { color: #b87333; font-size: 1.15rem; }
 
 .lb-av {
   width: 36px; height: 36px;
@@ -530,15 +538,24 @@ nav {
   font-size: 1rem;
   overflow: hidden;
   flex-shrink: 0;
+  transition: width 0.15s, height 0.15s;
 }
+.lb-row.rank-1 .lb-av { width: 48px; height: 48px; font-size: 1.3rem; border-color: var(--gold); }
+.lb-row.rank-2 .lb-av { width: 42px; height: 42px; font-size: 1.15rem; border-color: #555; }
+.lb-row.rank-3 .lb-av { width: 38px; height: 38px; font-size: 1.05rem; border-color: #6b4c2a; }
 .lb-av img { width: 100%; height: 100%; object-fit: cover; }
 
 .lb-info { flex: 1; min-width: 0; }
 .lb-name { font-weight: 600; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-row.rank-1 .lb-name { font-size: 1.05rem; font-weight: 700; color: #fff; }
+.lb-row.rank-2 .lb-name { font-size: 0.95rem; font-weight: 700; }
+.lb-row.rank-3 .lb-name { font-size: 0.9rem; font-weight: 600; }
 .lb-catline { font-size: 0.65rem; color: var(--muted); margin-top: 1px; }
 
 .lb-votes { font-size: 0.7rem; color: var(--muted); text-align: right; flex-shrink: 0; }
 .lb-vnum { font-size: 0.88rem; color: var(--text); display: block; font-weight: 600; }
+.lb-row.rank-1 .lb-vnum { font-size: 1.05rem; color: var(--gold); }
+.lb-row.rank-2 .lb-vnum { font-size: 0.95rem; }
 
 /* ── BADGES ── */
 .badge {
@@ -2526,12 +2543,13 @@ async function renderBoards() {
   const byG = [...entries].sort((a,b)=>b.giga-a.giga).slice(0,8);
   const rk = i => i===0?'r1':i===1?'r2':i===2?'r3':'';
 
+  const rowRankCls = i => i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
   const row = (p,i,type) => {
     const t = getTitle(p);
     const cd = CATS[p.cat];
     const count = type==='smooth' ? p.smooth : p.giga;
     const av = p.image ? `<img src="${p.image}" alt="">` : cd.defaultAv;
-    return `<div class="lb-row" onclick="openEntry('${esc(p.name)}','${p.cat}')">
+    return `<div class="lb-row ${rowRankCls(i)}" onclick="openEntry('${esc(p.name)}','${p.cat}')">
       <span class="lb-rank ${rk(i)}">${i+1}</span>
       <div class="lb-av">${av}</div>
       <div class="lb-info">
