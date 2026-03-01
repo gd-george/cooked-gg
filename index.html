@@ -878,6 +878,7 @@ nav {
 .page { display: none; }
 .page.active { display: block; }
 </style>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 
@@ -1008,6 +1009,15 @@ nav {
     <div id="nvSection" class="needs-votes" style="display:none">
       <p id="nvMsg">Need 10 more votes to unlock a title</p>
       <div class="nv-pips" id="nvPips"></div>
+    </div>
+
+    <!-- Turnstile invisible bot check — renders hidden, auto-verifies -->
+    <div class="cf-turnstile" id="cfTurnstile"
+      data-sitekey="0x4AAAAAACj9ifvQEekIgjyT"
+      data-callback="onTurnstileSuccess"
+      data-expired-callback="onTurnstileExpired"
+      data-size="invisible"
+      style="display:none">
     </div>
 
     <div class="vote-row">
@@ -1684,6 +1694,9 @@ async function openEntry(title, cat) {
   refreshShare(e);
   document.getElementById('modalOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+  // Pre-warm Turnstile so token is ready when user votes
+  tsToken = null;
+  if (window.turnstile) window.turnstile.execute('#cfTurnstile');
 
   if (!e.extract) {
     try {
@@ -2005,12 +2018,36 @@ Cast your vote → cooked.gg`;
   toast('🖼️ Card saved! Text copied.');
 }
 
+// ─────────────────────────────────────────
+//  TURNSTILE BOT PROTECTION
+// ─────────────────────────────────────────
+let tsToken = null;       // current valid token
+let tsPending = null;     // vote type waiting for token
+
+function onTurnstileSuccess(token) {
+  tsToken = token;
+  // If a vote was waiting for the token, fire it now
+  if (tsPending) {
+    const type = tsPending;
+    tsPending = null;
+    sendVote(type);
+  }
+}
+
+function onTurnstileExpired() {
+  tsToken = null;
+  // Re-render the widget so a new token can be obtained
+  if (window.turnstile) {
+    window.turnstile.reset('#cfTurnstile');
+  }
+}
+
 async function castVote(type) {
   if (!curKey) return;
+
+  // Optimistic UI update — instant feedback
   const e = store.entries[curKey];
   const cd = CATS[e.cat];
-
-  // Optimistic UI update — show the change instantly
   const prev = store.votes[curKey];
   if (prev === type) {
     store.votes[curKey] = null;
@@ -2026,15 +2063,30 @@ async function castVote(type) {
   const v = store.votes[curKey];
   toast(v ? (type==='giga' ? cd.gIcon+' '+cd.gLabel+' locked in' : cd.sIcon+' '+cd.sLabel+' locked in') : 'Vote removed');
 
-  // Send to Supabase in background
+  if (tsToken) {
+    // Token ready — send immediately
+    sendVote(type);
+  } else {
+    // No token yet — queue and trigger Turnstile challenge
+    tsPending = type;
+    if (window.turnstile) window.turnstile.execute('#cfTurnstile');
+  }
+}
+
+async function sendVote(type) {
+  if (!curKey) return;
+  const e = store.entries[curKey];
+  const token = tsToken;
+  tsToken = null; // tokens are one-use
+
   try {
     const result = await sbFetch('/rest/v1/rpc/cast_vote', {
       method: 'POST',
       body: JSON.stringify({
-        p_entry_id:   curKey,
-        p_name:       e.name,
-        p_cat:        e.cat,
-        p_vote_type:  type,
+        p_entry_id:    curKey,
+        p_name:        e.name,
+        p_cat:         e.cat,
+        p_vote_type:   type,
         p_fingerprint: FINGERPRINT
       })
     });
@@ -2046,6 +2098,8 @@ async function castVote(type) {
       refreshStats(e); refreshShare(e);
       renderBoards(); renderBuzz();
     }
+    // Pre-load a fresh token for the next vote
+    if (window.turnstile) window.turnstile.execute('#cfTurnstile');
   } catch(err) {
     console.warn('Vote sync failed:', err);
     toast('⚠️ Vote saved locally — sync failed');
