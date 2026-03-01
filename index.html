@@ -961,12 +961,19 @@ nav {
       <button class="cat-tab"        data-cat="place"  onclick="pickCat('place',this)">🌍 Place</button>
       <button class="cat-tab"        data-cat="animal" onclick="pickCat('animal',this)">🐾 Animal</button>
       <button class="cat-tab thing-parent" id="thingParentBtn" onclick="toggleThing(this)">⚡ Thing ▾</button>
+      <button class="cat-tab thing-parent" id="entParentBtn"   onclick="toggleEnt(this)">🎬 Ent ▾</button>
     </div>
     <div class="subcat-row" id="subcatRow" style="display:none">
       <button class="subcat-tab active" data-cat="food"      onclick="pickSubcat('food',this)">🍽️ Food</button>
       <button class="subcat-tab"        data-cat="invention" onclick="pickSubcat('invention',this)">💡 Invention</button>
       <button class="subcat-tab"        data-cat="concept"   onclick="pickSubcat('concept',this)">🧠 Concept</button>
       <button class="subcat-tab"        data-cat="brand"     onclick="pickSubcat('brand',this)">🏢 Brand</button>
+    </div>
+    <div class="subcat-row" id="entSubcatRow" style="display:none">
+      <button class="subcat-tab active" data-cat="movie" onclick="pickEntSubcat('movie',this)">🎬 Movie</button>
+      <button class="subcat-tab"        data-cat="show"  onclick="pickEntSubcat('show',this)">📺 Show</button>
+      <button class="subcat-tab"        data-cat="song"  onclick="pickEntSubcat('song',this)">🎵 Song</button>
+      <button class="subcat-tab"        data-cat="game"  onclick="pickEntSubcat('game',this)">🎮 Game</button>
     </div>
     <div class="cat-suggestion" id="catSuggestion" style="display:none">
       <span id="catSugMsg"></span>
@@ -1005,6 +1012,10 @@ nav {
       <button class="filter-tab" onclick="setLbCat('invention',this)">💡 Invention</button>
       <button class="filter-tab" onclick="setLbCat('concept',this)">🧠 Concept</button>
       <button class="filter-tab" onclick="setLbCat('brand',this)">🏢 Brand</button>
+      <button class="filter-tab" onclick="setLbCat('movie',this)">🎬 Movie</button>
+      <button class="filter-tab" onclick="setLbCat('show',this)">📺 Show</button>
+      <button class="filter-tab" onclick="setLbCat('song',this)">🎵 Song</button>
+      <button class="filter-tab" onclick="setLbCat('game',this)">🎮 Game</button>
     </div>
     <div class="lb-grid">
       <div class="lb-col">
@@ -1031,6 +1042,10 @@ nav {
       <button class="filter-tab" onclick="setTitlesCat('invention',this)">💡 Invention</button>
       <button class="filter-tab" onclick="setTitlesCat('concept',this)">🧠 Concept</button>
       <button class="filter-tab" onclick="setTitlesCat('brand',this)">🏢 Brand</button>
+      <button class="filter-tab" onclick="setTitlesCat('movie',this)">🎬 Movie</button>
+      <button class="filter-tab" onclick="setTitlesCat('show',this)">📺 Show</button>
+      <button class="filter-tab" onclick="setTitlesCat('song',this)">🎵 Song</button>
+      <button class="filter-tab" onclick="setTitlesCat('game',this)">🎮 Game</button>
     </div>
     <div class="titles-grid" id="titlesGrid"></div>
   </div>
@@ -1412,11 +1427,151 @@ const CATS = {
        side:'smooth',r10:null,r50:null,r100:0.75,
        desc:'The internet has made its ruling. Do not give them your money.',req:'100+ votes · 75%+ scam'},
     ]
+  },
+
+  // ── Entertainment subcategories ──
+  movie: {
+    label:'Movie', icon:'🎬', hint:'Search a film…',
+    sLabel:'Flop', gLabel:'Cinema',
+    sIcon:'💩', gIcon:'🎬',
+    sStatLbl:'Flop', gStatLbl:'Cinema',
+    defaultAv:'🎬', parent:'ent',
+    titles:[
+      {key:'CINEMA',      icon:'🎬',name:'Cinema',              cls:'badge-gold',  color:'#d4a017',
+       side:'giga',r10:null,r50:null,r100:0.75,
+       desc:'Not a movie. An experience. The culture shifted when this dropped.',req:'100+ votes · 75%+ cinema'},
+      {key:'CERTIFIED_B', icon:'🏆',name:'Certified Banger',   cls:'badge-blue',  color:'#3b82f6',
+       side:'giga',r10:null,r50:0.70,r100:0.70,
+       desc:'Earned its place. Quotable. Rewatchable. The real deal.',req:'50+ votes · 70%+ cinema'},
+      {key:'SOLID_M',     icon:'✅', name:'Solid Watch',        cls:'badge-blue',  color:'#60a5fa',
+       side:'giga',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Won\'t disappoint. Good for a Friday night. No complaints.',req:'10+ votes · 60%+ cinema'},
+      {key:'DIVISIVE_M',  icon:'🌀',name:'Divisive Cinema',    cls:'badge-purple',color:'#a855f7',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'Half walk out crying, half ask for a refund. Still talking about it.',req:'100+ votes · 45–55% split'},
+      {key:'MID_M',       icon:'😐',name:'Mid Film',           cls:'badge-grey',  color:'#888',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'Watched it. Forgot it. Moving on.',req:'10+ votes · even split'},
+      {key:'OVERHYPED',   icon:'📉',name:'Overhyped',          cls:'badge-orange',color:'#f97316',
+       side:'smooth',r10:0.65,r50:0.60,r100:0.58,
+       desc:'The trailer was better than the movie. Respectfully.',req:'10+ votes · 60%+ flop'},
+      {key:'FLOP',        icon:'💩',name:'Certified Flop',     cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:0.70,r100:0.70,
+       desc:'The budget was not the problem. The problem was everything else.',req:'50+ votes · 70%+ flop'},
+      {key:'DELETE_IT',   icon:'💀',name:'Delete It',          cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:null,r100:0.75,
+       desc:'Should not exist. The internet has spoken. Take it down.',req:'100+ votes · 75%+ flop'},
+    ]
+  },
+
+  show: {
+    label:'Show', icon:'📺', hint:'Search a TV show or series…',
+    sLabel:'Cancelled Behaviour', gLabel:'Must Watch',
+    sIcon:'📴', gIcon:'📺',
+    sStatLbl:'Cancelled', gStatLbl:'Must Watch',
+    defaultAv:'📺', parent:'ent',
+    titles:[
+      {key:'GOAT_S',      icon:'👑',name:'The GOAT Show',       cls:'badge-gold',  color:'#d4a017',
+       side:'giga',r10:null,r50:null,r100:0.75,
+       desc:'People build personalities around this show. Justified.',req:'100+ votes · 75%+ must watch'},
+      {key:'BINGE',       icon:'🏆',name:'Certified Binge',     cls:'badge-blue',  color:'#3b82f6',
+       side:'giga',r10:null,r50:0.70,r100:0.70,
+       desc:'Lost sleep over this. Would do it again. No regrets.',req:'50+ votes · 70%+ must watch'},
+      {key:'SOLID_S',     icon:'✅', name:'Solid Season',       cls:'badge-blue',  color:'#60a5fa',
+       side:'giga',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Good show. Consistent. Shows up and delivers.',req:'10+ votes · 60%+ must watch'},
+      {key:'DIVISIVE_S',  icon:'🌀',name:'Fandom War',          cls:'badge-purple',color:'#a855f7',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'The subreddit is a warzone. The finale discourse never ended.',req:'100+ votes · 45–55% split'},
+      {key:'MID_S',       icon:'😐',name:'Background TV',       cls:'badge-grey',  color:'#888',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'On while you eat. Fine. Forgotten by morning.',req:'10+ votes · even split'},
+      {key:'BAD_END',     icon:'📉',name:'Ruined By The Ending',cls:'badge-orange',color:'#f97316',
+       side:'smooth',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Started strong. The writers lost the plot. Literally.',req:'10+ votes · 60%+ cancelled'},
+      {key:'CANCELLED_B', icon:'📴',name:'Should Stay Cancelled',cls:'badge-red',  color:'#e53e3e',
+       side:'smooth',r10:null,r50:0.70,r100:0.70,
+       desc:'Cancelled for a reason. We don\'t want a revival.',req:'50+ votes · 70%+ cancelled'},
+      {key:'PURGE_IT',    icon:'💀',name:'Remove From Streaming',cls:'badge-red',  color:'#e53e3e',
+       side:'smooth',r10:null,r50:null,r100:0.75,
+       desc:'Wasting server space. The internet demands deletion.',req:'100+ votes · 75%+ cancelled'},
+    ]
+  },
+
+  song: {
+    label:'Song', icon:'🎵', hint:'Search a song or album…',
+    sLabel:'Skip', gLabel:'Banger',
+    sIcon:'⏭️', gIcon:'🎵',
+    sStatLbl:'Skip', gStatLbl:'Banger',
+    defaultAv:'🎵', parent:'ent',
+    titles:[
+      {key:'ANTHEM',      icon:'🎤',name:'Certified Anthem',    cls:'badge-gold',  color:'#d4a017',
+       side:'giga',r10:null,r50:null,r100:0.75,
+       desc:'This plays at the function and everyone knows every word.',req:'100+ votes · 75%+ banger'},
+      {key:'BANGER',      icon:'🔥',name:'Hard Banger',         cls:'badge-blue',  color:'#3b82f6',
+       side:'giga',r10:null,r50:0.70,r100:0.70,
+       desc:'Goes crazy. No notes. Full send every time.',req:'50+ votes · 70%+ banger'},
+      {key:'SOLID_T',     icon:'✅', name:'Solid Track',        cls:'badge-blue',  color:'#60a5fa',
+       side:'giga',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Good for the playlist. Consistent vibes. Won\'t skip.',req:'10+ votes · 60%+ banger'},
+      {key:'DIVISIVE_T',  icon:'🌀',name:'Taste Divider',       cls:'badge-purple',color:'#a855f7',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'Half the room loves it. Half leaves. The aux cord debate.',req:'100+ votes · 45–55% split'},
+      {key:'MID_T',       icon:'😐',name:'Mid Track',           cls:'badge-grey',  color:'#888',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'Plays. Ends. Nobody noticed. Moving on.',req:'10+ votes · even split'},
+      {key:'FILLER',      icon:'📉',name:'Album Filler',        cls:'badge-orange',color:'#f97316',
+       side:'smooth',r10:0.65,r50:0.60,r100:0.58,
+       desc:'The weakest track. Everyone skips it. The artist knows.',req:'10+ votes · 60%+ skip'},
+      {key:'SKIP',        icon:'⏭️', name:'Hard Skip',          cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:0.70,r100:0.70,
+       desc:'Not making the playlist. Not making any playlist.',req:'50+ votes · 70%+ skip'},
+      {key:'DELETE_S',    icon:'💀',name:'Remove From Spotify', cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:null,r100:0.75,
+       desc:'A crime against music. The algorithm should be ashamed.',req:'100+ votes · 75%+ skip'},
+    ]
+  },
+
+  game: {
+    label:'Game', icon:'🎮', hint:'Search a video game…',
+    sLabel:'Uninstall', gLabel:'GOTY',
+    sIcon:'🗑️', gIcon:'🎮',
+    sStatLbl:'Uninstall', gStatLbl:'GOTY',
+    defaultAv:'🎮', parent:'ent',
+    titles:[
+      {key:'GOTY',        icon:'🏆',name:'GOTY',                cls:'badge-gold',  color:'#d4a017',
+       side:'giga',r10:null,r50:null,r100:0.75,
+       desc:'Game of the year. Maybe the decade. A generational experience.',req:'100+ votes · 75%+ GOTY'},
+      {key:'MUST_PLAY',   icon:'🎮',name:'Must Play',           cls:'badge-blue',  color:'#3b82f6',
+       side:'giga',r10:null,r50:0.70,r100:0.70,
+       desc:'Everyone who touched this loved it. Earn the platinum.',req:'50+ votes · 70%+ GOTY'},
+      {key:'SOLID_G',     icon:'✅', name:'Solid Game',         cls:'badge-blue',  color:'#60a5fa',
+       side:'giga',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Good game. Well made. Worth the sale price at minimum.',req:'10+ votes · 60%+ GOTY'},
+      {key:'DIVISIVE_G',  icon:'🌀',name:'Community Divided',   cls:'badge-purple',color:'#a855f7',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'Review bombed and praised in the same week. The discourse never ends.',req:'100+ votes · 45–55% split'},
+      {key:'MID_G',       icon:'😐',name:'Mid Game',            cls:'badge-grey',  color:'#888',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'Played it. Finished it. Forgot it. Next.',req:'10+ votes · even split'},
+      {key:'WAIT_SALE',   icon:'📉',name:'Wait for the Sale',   cls:'badge-orange',color:'#f97316',
+       side:'smooth',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Not worth full price. Not worth £70. $29.99 in a year.',req:'10+ votes · 60%+ uninstall'},
+      {key:'UNINSTALL',   icon:'🗑️', name:'Uninstall',          cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:0.70,r100:0.70,
+       desc:'The refund window was not long enough. Lessons were learned.',req:'50+ votes · 70%+ uninstall'},
+      {key:'NEVER_AGAIN', icon:'💀',name:'Never Again',         cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:null,r100:0.75,
+       desc:'A betrayal. The community has not forgiven. Will not forgive.',req:'100+ votes · 75%+ uninstall'},
+    ]
   }
 };
 
 // Which cats are subcategories of Thing
 const THING_SUBCATS = ['food','invention','concept','brand'];
+
+// Which cats are subcategories of Entertainment
+const ENT_SUBCATS = ['movie','show','song','game'];
 
 // ─────────────────────────────────────────
 //  WIKIPEDIA CATEGORY DETECTION
@@ -1619,13 +1774,61 @@ function pickSubcat(cat, btn) {
   hideDD();
 }
 
+// Entertainment parent toggle
+function toggleEnt(btn) {
+  if (thingOpen) {
+    thingOpen = false;
+    document.getElementById('subcatRow').style.display = 'none';
+    document.getElementById('thingParentBtn').classList.remove('active');
+    document.getElementById('thingParentBtn').textContent = '⚡ Thing ▾';
+  }
+  entOpen = !entOpen;
+  const row = document.getElementById('entSubcatRow');
+  row.style.display = entOpen ? 'flex' : 'none';
+  btn.textContent = entOpen ? '🎬 Ent ▲' : '🎬 Ent ▾';
+  document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (entOpen) {
+    const activeSub = document.querySelector('#entSubcatRow .subcat-tab.active');
+    const cat = activeSub ? activeSub.dataset.cat : 'movie';
+    curCat = cat;
+    document.getElementById('searchInput').placeholder = CATS[cat].hint;
+  }
+  dismissSuggestion();
+  hideDD();
+}
+
+function pickEntSubcat(cat, btn) {
+  curCat = cat;
+  document.querySelectorAll('#entSubcatRow .subcat-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('searchInput').placeholder = CATS[cat].hint;
+  dismissSuggestion();
+  hideDD();
+}
+
 // ─────────────────────────────────────────
 //  CATEGORY SUGGESTION BANNER
 // ─────────────────────────────────────────
+const SUG_MSG = {
+  name:      '👤 Looks like a person — try the Name tab?',
+  place:     '🌍 Looks like a place — try the Place tab?',
+  animal:    '🐾 Looks like an animal — try the Animal tab?',
+  food:      '🍽️ Looks like food — try Food under Thing?',
+  invention: '💡 Looks like an invention — try Invention under Thing?',
+  concept:   '🧠 Looks like a concept — try Concept under Thing?',
+  brand:     '🏢 Looks like a brand — try Brand under Thing?',
+  movie:     '🎬 Looks like a movie — try Movie under Ent?',
+  show:      '📺 Looks like a TV show — try Show under Ent?',
+  song:      '🎵 Looks like a song — try Song under Ent?',
+  game:      '🎮 Looks like a game — try Game under Ent?',
+};
+
 function showSuggestion(detectedCat) {
   if (detectedCat === curCat) return;
   // Don't nag if user is already on a Thing subcat and detected is also Thing subcat
   if (THING_SUBCATS.includes(detectedCat) && THING_SUBCATS.includes(curCat)) return;
+  if (ENT_SUBCATS.includes(detectedCat) && ENT_SUBCATS.includes(curCat)) return;
   suggestedCat = detectedCat;
   document.getElementById('catSugMsg').textContent = SUG_MSG[detectedCat] || `Try the ${detectedCat} tab?`;
   document.getElementById('catSuggestion').style.display = 'flex';
@@ -1636,7 +1839,6 @@ function acceptSuggestion() {
   const cat = suggestedCat;
   const cd = CATS[cat];
   if (THING_SUBCATS.includes(cat)) {
-    // open thing parent + activate correct subcat
     thingOpen = true;
     document.getElementById('subcatRow').style.display = 'flex';
     const parentBtn = document.getElementById('thingParentBtn');
@@ -1644,7 +1846,18 @@ function acceptSuggestion() {
     parentBtn.textContent = '⚡ Thing ▲';
     document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
     parentBtn.classList.add('active');
-    document.querySelectorAll('.subcat-tab').forEach(b=>{
+    document.querySelectorAll('#subcatRow .subcat-tab').forEach(b=>{
+      b.classList.toggle('active', b.dataset.cat === cat);
+    });
+  } else if (ENT_SUBCATS.includes(cat)) {
+    entOpen = true;
+    document.getElementById('entSubcatRow').style.display = 'flex';
+    const entBtn = document.getElementById('entParentBtn');
+    entBtn.classList.add('active');
+    entBtn.textContent = '🎬 Ent ▲';
+    document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
+    entBtn.classList.add('active');
+    document.querySelectorAll('#entSubcatRow .subcat-tab').forEach(b=>{
       b.classList.toggle('active', b.dataset.cat === cat);
     });
   } else {
@@ -1937,7 +2150,7 @@ async function drawShareCard(e) {
   ctx.font = '500 30px Inter, sans-serif';
   ctx.fillStyle = '#555';
   ctx.textAlign = 'left';
-  const parentLabel = cd.parent ? `⚡ ${cd.label}` : `${cd.icon} ${cd.label}`;
+  const parentLabel = cd.parent === 'ent' ? `${cd.icon} ${cd.label}` : cd.parent ? `⚡ ${cd.label}` : `${cd.icon} ${cd.label}`;
   ctx.fillText(parentLabel.toUpperCase(), 80, 188);
 
   // ── Entry name ──
@@ -2250,7 +2463,7 @@ async function renderBoards() {
       <div class="lb-av">${av}</div>
       <div class="lb-info">
         <div class="lb-name">${escH(p.name)}</div>
-        <div class="lb-catline">${cd.parent ? '⚡ ' + cd.label : cd.icon + ' ' + cd.label}</div>
+        <div class="lb-catline">${cd.parent === 'ent' ? cd.icon + ' ' + cd.label : cd.parent ? '⚡ ' + cd.label : cd.icon + ' ' + cd.label}</div>
         <div style="margin-top:3px">${badge(t)}</div>
       </div>
       <div class="lb-votes"><span class="lb-vnum">${count}</span>votes</div>
@@ -2297,7 +2510,7 @@ async function renderBuzz() {
     return `<div class="buzz-card" onclick="openEntry('${esc(p.name)}','${p.cat}')">
       <div class="b-avatar">${av}</div>
       <div class="b-info">
-        <div class="b-cat">${cd.parent ? '⚡ · ' + cd.label : cd.icon + ' ' + cd.label}</div>
+        <div class="b-cat">${cd.parent === 'ent' ? cd.icon + ' · ' + cd.label : cd.parent ? '⚡ · ' + cd.label : cd.icon + ' ' + cd.label}</div>
         <div class="b-name">${escH(p.name)}</div>
         <div class="b-badge">${badge(t)}</div>
         <div class="b-bar-wrap"><div class="b-bar" style="width:${gP}%"></div></div>
