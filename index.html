@@ -2172,251 +2172,196 @@ async function drawShareCard(e) {
   const gPct   = total > 0 ? Math.round((e.giga / total) * 100) : 50;
   const sPct   = 100 - gPct;
   const isShiny = title.cls === 'badge-gold';
-  const isDark  = title.side === 'smooth' && title.r100 === 0.75;
-  const hex     = title.color || '#888';
-  const rgb     = hexToRgb(hex) || {r:136,g:136,b:136};
-  const BM = 22, R = 32, PAD = 28;
+  const hex     = title.color || '#555';
+  const rgb     = hexToRgb(hex) || {r:85,g:85,b:85};
+  const P = 52; // padding
 
-  // ── 1. OUTER SHELL ──────────────────────────────────────
-  if (isShiny) {
-    // Multi-stop gold shimmer border
-    const shine = ctx.createLinearGradient(0, 0, W, H);
-    shine.addColorStop(0.00, '#fffbe6');
-    shine.addColorStop(0.18, '#ffd700');
-    shine.addColorStop(0.35, '#fff0a0');
-    shine.addColorStop(0.52, '#ffd700');
-    shine.addColorStop(0.68, '#ffe066');
-    shine.addColorStop(0.85, '#ffd700');
-    shine.addColorStop(1.00, '#fffbe6');
-    ctx.fillStyle = shine;
-    roundRect(ctx, 0, 0, W, H, R); ctx.fill();
-    // white bevel on top
-    const bevel = ctx.createLinearGradient(0, 0, 0, 80);
-    bevel.addColorStop(0, 'rgba(255,255,255,0.55)');
-    bevel.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = bevel;
-    roundRect(ctx, 4, 4, W-8, H-8, R-2); ctx.fill();
-  } else if (isDark) {
-    const db = ctx.createLinearGradient(0, 0, W, H);
-    db.addColorStop(0, '#3a0000');
-    db.addColorStop(0.5, '#1a0000');
-    db.addColorStop(1, '#3a0000');
-    ctx.fillStyle = db;
-    roundRect(ctx, 0, 0, W, H, R); ctx.fill();
-  } else {
-    const sb = ctx.createLinearGradient(0, 0, W, H);
-    sb.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},0.8)`);
-    sb.addColorStop(0.5, '#444');
-    sb.addColorStop(1, `rgba(${rgb.r},${rgb.g},${rgb.b},0.6)`);
-    ctx.fillStyle = sb;
-    roundRect(ctx, 0, 0, W, H, R); ctx.fill();
+  // helper — wrap text into lines
+  function wrapText(text, maxW, font) {
+    ctx.font = font;
+    const words = text.split(' ');
+    const out = [];
+    let cur = '';
+    for (const w of words) {
+      const test = cur ? cur + ' ' + w : w;
+      if (ctx.measureText(test).width > maxW && cur) { out.push(cur); cur = w; }
+      else cur = test;
+    }
+    if (cur) out.push(cur);
+    return out;
   }
 
-  // ── 2. INNER BACKGROUND ─────────────────────────────────
-  const bg = ctx.createLinearGradient(BM, BM, BM, H - BM);
-  if (isShiny) {
-    bg.addColorStop(0,   '#1c1600');
-    bg.addColorStop(0.4, '#110e00');
-    bg.addColorStop(1,   '#0a0800');
-  } else if (isDark) {
-    bg.addColorStop(0, '#0d0000');
-    bg.addColorStop(1, '#050000');
-  } else {
-    bg.addColorStop(0, '#141414');
-    bg.addColorStop(1, '#0a0a0a');
-  }
-  ctx.fillStyle = bg;
-  roundRect(ctx, BM, BM, W-BM*2, H-BM*2, R-6); ctx.fill();
-
-  // Shiny diagonal shimmer on bg
-  if (isShiny) {
-    const sh = ctx.createLinearGradient(BM, BM, W-BM, H-BM);
-    sh.addColorStop(0.0,  'rgba(255,215,0,0.12)');
-    sh.addColorStop(0.3,  'rgba(255,100,50,0.04)');
-    sh.addColorStop(0.55, 'rgba(255,255,255,0.09)');
-    sh.addColorStop(0.8,  'rgba(100,180,255,0.04)');
-    sh.addColorStop(1.0,  'rgba(255,215,0,0.10)');
-    ctx.fillStyle = sh;
-    roundRect(ctx, BM, BM, W-BM*2, H-BM*2, R-6); ctx.fill();
-    // corner glow
-    const cg = ctx.createRadialGradient(BM+60, BM+60, 0, BM+60, BM+60, 320);
-    cg.addColorStop(0, 'rgba(255,215,0,0.20)');
-    cg.addColorStop(1, 'rgba(255,215,0,0)');
-    ctx.fillStyle = cg;
-    roundRect(ctx, BM, BM, W-BM*2, H-BM*2, R-6); ctx.fill();
-  }
-
-  // ── 3. HEADER ───────────────────────────────────────────
-  // Gradient band at top
-  const hb = ctx.createLinearGradient(BM, BM, BM, BM+120);
-  hb.addColorStop(0, isShiny ? 'rgba(255,215,0,0.30)' : isDark ? 'rgba(229,62,62,0.20)' : `rgba(${rgb.r},${rgb.g},${rgb.b},0.18)`);
-  hb.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = hb;
-  roundRect(ctx, BM, BM, W-BM*2, 120, R-6); ctx.fill();
-
-  // Name
-  const nLen = e.name.length;
-  const nSz  = nLen > 20 ? 50 : nLen > 13 ? 62 : 72;
-  ctx.font      = `700 ${nSz}px 'Bebas Neue', serif`;
-  ctx.fillStyle = '#ffffff';
-  ctx.textAlign = 'left';
-  let dName = e.name;
-  const maxNW = W - BM*2 - PAD*2 - 160;
-  while (ctx.measureText(dName).width > maxNW && dName.length > 2) dName = dName.slice(0,-1);
-  if (dName !== e.name) dName += '…';
-  ctx.fillText(dName, BM + PAD, BM + nSz + 12);
-
-  // Vote count top-right
-  ctx.font      = '700 34px Inter, sans-serif';
-  ctx.fillStyle = isShiny ? '#ffd700' : hex;
-  ctx.textAlign = 'right';
-  ctx.fillText(`${total}`, W - BM - PAD, BM + 52);
-  ctx.font      = '500 20px Inter, sans-serif';
-  ctx.fillStyle = '#666';
-  ctx.fillText('VOTES', W - BM - PAD, BM + 76);
-
-  // Category pill
-  ctx.textAlign = 'left';
-  ctx.font = '600 23px Inter, sans-serif';
-  const catLabel = cd.parent === 'ent' ? `${cd.icon} ${cd.label.toUpperCase()}`
-                 : cd.parent           ? `⚡ ${cd.label.toUpperCase()}`
-                 :                       `${cd.icon} ${cd.label.toUpperCase()}`;
-  const pW = ctx.measureText(catLabel).width + 36;
-  const pX = BM + PAD, pY = BM + nSz + 22, pH = 36;
-  ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.22)`;
-  roundRect(ctx, pX, pY, pW, pH, pH/2); ctx.fill();
-  ctx.strokeStyle = isShiny ? '#ffd700' : hex;
-  ctx.lineWidth = 1.5;
-  roundRect(ctx, pX, pY, pW, pH, pH/2); ctx.stroke();
-  ctx.fillStyle = isShiny ? '#ffd700' : hex;
-  ctx.fillText(catLabel, pX + 18, pY + 26);
-
-  // ── 4. ARTWORK ──────────────────────────────────────────
-  const artX = BM + PAD - 4;
-  const artY = BM + nSz + 22 + pH + 18;
-  const artW = W - BM*2 - PAD*2 + 8;
-  const artH = 380;
-
-  // Art frame
-  if (isShiny) {
-    const af = ctx.createLinearGradient(artX, artY, artX+artW, artY+artH);
-    af.addColorStop(0,    '#ffd700');
-    af.addColorStop(0.33, '#fff0a0');
-    af.addColorStop(0.66, '#ffd700');
-    af.addColorStop(1,    '#ffe066');
-    ctx.fillStyle = af;
-    roundRect(ctx, artX-5, artY-5, artW+10, artH+10, 20); ctx.fill();
-  } else {
-    ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.55)`;
-    roundRect(ctx, artX-3, artY-3, artW+6, artH+6, 18); ctx.fill();
-  }
-  ctx.fillStyle = '#0a0a0a';
-  roundRect(ctx, artX, artY, artW, artH, 15); ctx.fill();
+  // ── 1. FULL-BLEED PHOTO BACKGROUND ──────────────────────
+  ctx.fillStyle = '#0d0d0d';
+  ctx.fillRect(0, 0, W, H);
 
   if (e.image) {
     await new Promise(resolve => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
-        ctx.save();
-        roundRect(ctx, artX, artY, artW, artH, 15); ctx.clip();
-        const sc = Math.max(artW/img.naturalWidth, artH/img.naturalHeight);
-        const dw = img.naturalWidth*sc, dh = img.naturalHeight*sc;
-        ctx.drawImage(img, artX+(artW-dw)/2, artY+(artH-dh)/2, dw, dh);
-        // bottom fade
-        const fade = ctx.createLinearGradient(artX, artY+artH*0.5, artX, artY+artH);
-        fade.addColorStop(0, 'rgba(0,0,0,0)');
-        fade.addColorStop(1, 'rgba(0,0,0,0.65)');
+        // cover-fit into top 55% of card
+        const zone = H * 0.56;
+        const sc = Math.max(W / img.naturalWidth, zone / img.naturalHeight);
+        const dw = img.naturalWidth * sc, dh = img.naturalHeight * sc;
+        ctx.drawImage(img, (W - dw) / 2, 0, dw, dh);
+        // gradient fade: photo → dark
+        const fade = ctx.createLinearGradient(0, zone * 0.35, 0, zone + 40);
+        fade.addColorStop(0, 'rgba(13,13,13,0)');
+        fade.addColorStop(1, 'rgba(13,13,13,1)');
         ctx.fillStyle = fade;
-        ctx.fillRect(artX, artY, artW, artH);
-        ctx.restore();
-        // sparkle dots for shiny
-        if (isShiny) {
-          ctx.save();
-          roundRect(ctx, artX, artY, artW, artH, 15); ctx.clip();
-          [[0.12,0.10],[0.85,0.15],[0.5,0.07],[0.25,0.8],[0.72,0.68],[0.92,0.4]].forEach(([fx,fy]) => {
-            const sg = ctx.createRadialGradient(artX+artW*fx,artY+artH*fy,0,artX+artW*fx,artY+artH*fy,26);
-            sg.addColorStop(0,'rgba(255,255,255,0.6)');
-            sg.addColorStop(1,'rgba(255,255,255,0)');
-            ctx.fillStyle = sg;
-            ctx.beginPath(); ctx.arc(artX+artW*fx,artY+artH*fy,26,0,Math.PI*2); ctx.fill();
-          });
-          ctx.restore();
-        }
+        ctx.fillRect(0, 0, W, zone + 40);
         resolve();
       };
-      img.onerror = () => {
-        ctx.font = '160px serif'; ctx.textAlign = 'center';
-        ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.15)`;
-        ctx.fillText(cd.defaultAv, artX+artW/2, artY+artH/2+55);
-        resolve();
-      };
+      img.onerror = () => resolve();
       img.src = e.image;
     });
-  } else {
-    ctx.font = '170px serif'; ctx.textAlign = 'center';
-    ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.12)`;
-    ctx.fillText(cd.defaultAv, artX+artW/2, artY+artH/2+55);
   }
 
-  // ── 5. INFO SECTION ─────────────────────────────────────
-  const infoY = artY + artH + 18;
-  const infoW = W - BM*2 - PAD*2;
-  const infoX = BM + PAD;
-  const infoH = H - infoY - BM - PAD + 4;
+  // For shiny — gold shimmer overlay on photo area
+  if (isShiny && e.image) {
+    const shimmer = ctx.createLinearGradient(0, 0, W, H * 0.56);
+    shimmer.addColorStop(0,   'rgba(255,215,0,0.08)');
+    shimmer.addColorStop(0.5, 'rgba(255,255,255,0.04)');
+    shimmer.addColorStop(1,   'rgba(255,215,0,0.06)');
+    ctx.fillStyle = shimmer;
+    ctx.fillRect(0, 0, W, H * 0.56);
+  }
 
-  const ib = ctx.createLinearGradient(infoX, infoY, infoX, infoY+infoH);
-  ib.addColorStop(0, 'rgba(255,255,255,0.07)');
-  ib.addColorStop(1, 'rgba(255,255,255,0.02)');
-  ctx.fillStyle = ib;
-  roundRect(ctx, infoX, infoY, infoW, infoH, 16); ctx.fill();
-  ctx.strokeStyle = isShiny ? 'rgba(255,215,0,0.45)' : `rgba(${rgb.r},${rgb.g},${rgb.b},0.3)`;
-  ctx.lineWidth = 1.5;
-  roundRect(ctx, infoX, infoY, infoW, infoH, 16); ctx.stroke();
+  // ── 2. ACCENT LINE (thin coloured bar at very top) ──────
+  const accentH = 5;
+  if (isShiny) {
+    const accentG = ctx.createLinearGradient(0, 0, W, 0);
+    accentG.addColorStop(0,   '#ffd700');
+    accentG.addColorStop(0.5, '#fff7a1');
+    accentG.addColorStop(1,   '#ffd700');
+    ctx.fillStyle = accentG;
+  } else {
+    ctx.fillStyle = hex;
+  }
+  ctx.fillRect(0, 0, W, accentH);
 
-  // Verdict title
-  const vY = infoY + 56;
-  ctx.font = `700 72px 'Bebas Neue', serif`;
+  // ── 3. TOP-LEFT: site tag ────────────────────────────────
+  ctx.font = '500 22px Inter, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.textAlign = 'left';
+  ctx.fillText('COOKED.GG', P, P + 28);
+
+  // Category label — top right
+  const catText = cd.parent === 'ent' ? `${cd.label.toUpperCase()}`
+                : cd.parent           ? `${cd.label.toUpperCase()}`
+                :                       `${cd.label.toUpperCase()}`;
+  ctx.font = '600 22px Inter, sans-serif';
+  ctx.fillStyle = isShiny ? '#ffd700' : hex;
+  ctx.textAlign = 'right';
+  ctx.fillText(catText, W - P, P + 28);
+
+  // ── 4. NAME — sits over the bottom of the photo ─────────
+  const nameZoneY = H * 0.38; // where name block starts
+  const nLen = e.name.length;
+  const nSz  = nLen > 22 ? 72 : nLen > 14 ? 88 : 108;
+  const nameFont = `700 ${nSz}px 'Bebas Neue', serif`;
+  const nameLines = wrapText(e.name, W - P * 2, nameFont);
+  ctx.font      = nameFont;
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'left';
+  const lineH = nSz * 1.0;
+  nameLines.slice(0, 3).forEach((l, i) => {
+    ctx.fillText(l, P, nameZoneY + nSz + i * lineH);
+  });
+  const nameBotY = nameZoneY + nSz + (Math.min(nameLines.length, 3) - 1) * lineH;
+
+  // ── 5. BOTTOM PANEL (dark solid section) ─────────────────
+  const panelY = nameBotY + 40;
+
+  // Thin accent line above panel
+  ctx.strokeStyle = isShiny ? 'rgba(255,215,0,0.4)' : `rgba(${rgb.r},${rgb.g},${rgb.b},0.4)`;
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(P, panelY); ctx.lineTo(W - P, panelY); ctx.stroke();
+
+  // ── 6. VERDICT ───────────────────────────────────────────
+  const vY = panelY + 60;
+
+  // Small "VERDICT" label
+  ctx.font = '500 20px Inter, sans-serif';
+  ctx.fillStyle = '#444';
+  ctx.textAlign = 'left';
+  ctx.fillText('VERDICT', P, vY);
+
+  // Verdict name — big, coloured, NO emoji in font string
+  const vNameFont = `700 80px 'Bebas Neue', serif`;
+  ctx.font      = vNameFont;
+  ctx.fillStyle = isShiny ? '#ffd700' : hex;
+  ctx.fillText(title.name.toUpperCase(), P, vY + 82);
+
+  // Emoji drawn separately to fix alignment
+  ctx.font = '54px serif';
+  ctx.textAlign = 'left';
+  const vNameW = (() => { ctx.font = vNameFont; const w = ctx.measureText(title.name.toUpperCase()).width; return w; })();
+  ctx.font = '54px serif';
+  ctx.fillStyle = '#fff';
+  ctx.fillText(title.icon, P + vNameW + 16, vY + 78);
+
+  // Desc
+  ctx.font = '400 25px Inter, sans-serif';
+  ctx.fillStyle = '#555';
+  ctx.textAlign = 'left';
+  let desc = title.desc || '';
+  while (ctx.measureText(desc).width > W - P * 2 && desc.length > 8) desc = desc.slice(0,-1);
+  if (desc !== (title.desc||'')) desc += '…';
+  ctx.fillText(desc, P, vY + 82 + 38);
+
+  // ── 7. VOTE BAR ──────────────────────────────────────────
+  const bY = vY + 82 + 38 + 44;
+  const bH = 8;
+  const bW = W - P * 2;
+
+  // Labels
+  ctx.font = '600 24px Inter, sans-serif';
+  ctx.fillStyle = '#e53e3e';
+  ctx.textAlign = 'left';
+  ctx.fillText(`${sPct}% ${cd.sStatLbl.toUpperCase()}`, P, bY - 10);
+  ctx.fillStyle = '#3b82f6';
+  ctx.textAlign = 'right';
+  ctx.fillText(`${gPct}% ${cd.gStatLbl.toUpperCase()}`, W - P, bY - 10);
+
+  // Track
+  ctx.fillStyle = '#1e1e1e';
+  roundRect(ctx, P, bY, bW, bH, 4); ctx.fill();
+  // Fill
+  if (sPct > 0) {
+    ctx.fillStyle = '#e53e3e';
+    roundRect(ctx, P, bY, bW * sPct / 100, bH, 4); ctx.fill();
+  }
+  if (gPct > 0) {
+    ctx.fillStyle = '#3b82f6';
+    const gw = bW * gPct / 100;
+    roundRect(ctx, P + bW - gw, bY, gw, bH, 4); ctx.fill();
+  }
+
+  // Total votes
+  ctx.font = '400 22px Inter, sans-serif';
+  ctx.fillStyle = '#3a3a3a';
+  ctx.textAlign = 'left';
+  ctx.fillText(`${total} vote${total !== 1 ? 's' : ''} cast`, P, bY + bH + 30);
+
+  // ── 8. FOOTER ────────────────────────────────────────────
+  const fY = H - 52;
+
+  // thin line
+  ctx.strokeStyle = '#1e1e1e';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(P, fY - 22); ctx.lineTo(W - P, fY - 22); ctx.stroke();
+
+  ctx.font = '700 26px Inter, sans-serif';
   ctx.fillStyle = isShiny ? '#ffd700' : hex;
   ctx.textAlign = 'left';
-  ctx.fillText(`${title.icon}  ${title.name.toUpperCase()}`, infoX + 20, vY);
+  ctx.fillText('cooked.gg', P, fY);
 
-  // Desc (truncated to one line)
-  let desc = title.desc || '';
-  ctx.font = '400 23px Inter, sans-serif';
-  ctx.fillStyle = '#777';
-  const maxDW = infoW - 40;
-  while (ctx.measureText(desc).width > maxDW && desc.length > 8) desc = desc.slice(0,-1);
-  if (desc !== (title.desc||'')) desc += '…';
-  ctx.fillText(desc, infoX + 20, vY + 36);
-
-  // Divider
-  ctx.strokeStyle = isShiny ? 'rgba(255,215,0,0.2)' : `rgba(${rgb.r},${rgb.g},${rgb.b},0.15)`;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(infoX+20, vY+54); ctx.lineTo(infoX+infoW-20, vY+54);
-  ctx.stroke();
-
-  // Vote bar
-  const bY=vY+80, bH=13, bW=infoW-40, bX=infoX+20;
-  ctx.font='600 23px Inter, sans-serif';
-  ctx.fillStyle='#e53e3e'; ctx.textAlign='left';
-  ctx.fillText(`${sPct}% ${cd.sStatLbl.toUpperCase()}`, bX, bY-8);
-  ctx.fillStyle='#3b82f6'; ctx.textAlign='right';
-  ctx.fillText(`${gPct}% ${cd.gStatLbl.toUpperCase()}`, bX+bW, bY-8);
-  ctx.fillStyle='#111'; roundRect(ctx,bX,bY,bW,bH,7); ctx.fill();
-  if(sPct>0){ctx.fillStyle='#e53e3e'; roundRect(ctx,bX,bY,bW*sPct/100,bH,7); ctx.fill();}
-  if(gPct>0){ctx.fillStyle='#3b82f6'; const gw=bW*gPct/100; roundRect(ctx,bX+bW-gw,bY,gw,bH,7); ctx.fill();}
-
-  // Footer
-  const fY = H - BM - PAD;
-  ctx.font='700 25px Inter, sans-serif';
-  ctx.fillStyle = isShiny ? '#ffd700' : hex;
-  ctx.textAlign='left';
-  ctx.fillText('cooked.gg', infoX+20, fY);
-  ctx.font='400 23px Inter, sans-serif';
-  ctx.fillStyle='#555'; ctx.textAlign='right';
-  ctx.fillText('cast your vote →', infoX+infoW-20, fY);
+  ctx.font = '400 24px Inter, sans-serif';
+  ctx.fillStyle = '#3a3a3a';
+  ctx.textAlign = 'right';
+  ctx.fillText('vote now →', W - P, fY);
 
   return canvas.toDataURL('image/png');
 }
@@ -2425,6 +2370,7 @@ function hexToRgb(hex) {
   const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return r ? { r: parseInt(r[1],16), g: parseInt(r[2],16), b: parseInt(r[3],16) } : null;
 }
+
 
 
 function roundRect(ctx, x, y, w, h, r) {
