@@ -760,11 +760,13 @@ nav {
 
 .share-preview {
   width: 100%;
+  aspect-ratio: 900 / 1260;
   border-radius: 8px;
   border: 1px solid var(--border);
   display: block;
   margin-bottom: 10px;
   cursor: pointer;
+  object-fit: contain;
 }
 
 .share-btn {
@@ -1226,7 +1228,7 @@ nav {
 
     <div class="share-section">
       <!-- Canvas (hidden) used to draw the card, img shows the preview -->
-      <canvas id="shareCanvas" width="1080" height="1080"></canvas>
+      <canvas id="shareCanvas" width="900" height="1260"></canvas>
       <img id="sharePreview" class="share-preview" alt="Share card preview" onclick="doShare()">
       <button class="share-btn" id="shareBtn" onclick="doShare()">
         <span>↑</span> Share for votes
@@ -2379,13 +2381,13 @@ async function drawShareCard(e) {
   }
 
   // ── FOOTER ──
-  const footY = H - M - 18;
+  const footY = H - M - 52;  // moved up so text sits inside the gold border
   ctx.font = '700 28px Inter, sans-serif';
   ctx.fillStyle = hex;
   ctx.textAlign = 'left';
   ctx.fillText('cooked.gg', INNER + 24, footY);
   ctx.font = '400 26px Inter, sans-serif';
-  ctx.fillStyle = '#555';
+  ctx.fillStyle = '#888';
   ctx.textAlign = 'right';
   ctx.fillText('cast your vote →', W - INNER - 24, footY);
 
