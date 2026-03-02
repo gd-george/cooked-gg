@@ -2162,234 +2162,261 @@ function refreshShare(e) {
 
 async function drawShareCard(e) {
   const canvas = document.getElementById('shareCanvas');
-  const ctx = canvas.getContext('2d');
-  // Portrait card — Pokémon ratio ~630×880
+  const ctx    = canvas.getContext('2d');
   const W = 900, H = 1260;
   canvas.width = W; canvas.height = H;
 
   const title  = getTitle(e);
   const cd     = CATS[e.cat];
   const total  = e.smooth + e.giga;
-  const gPct   = total > 0 ? Math.round((e.giga  / total) * 100) : 50;
+  const gPct   = total > 0 ? Math.round((e.giga / total) * 100) : 50;
   const sPct   = 100 - gPct;
-  const M      = 36;   // card margin
-  const R      = 32;   // outer corner radius
-  const INNER  = M + 14;
+  const isShiny = title.cls === 'badge-gold';
+  const isDark  = title.side === 'smooth' && title.r100 === 0.75;
+  const hex     = title.color || '#888';
+  const rgb     = hexToRgb(hex) || {r:136,g:136,b:136};
+  const BM = 22, R = 32, PAD = 28;
 
-  // ── Pick palette from title colour ──
-  const hex = title.color || '#d4a017';
-  const rgb = hexToRgb(hex) || {r:212,g:160,b:23};
+  // ── 1. OUTER SHELL ──────────────────────────────────────
+  if (isShiny) {
+    // Multi-stop gold shimmer border
+    const shine = ctx.createLinearGradient(0, 0, W, H);
+    shine.addColorStop(0.00, '#fffbe6');
+    shine.addColorStop(0.18, '#ffd700');
+    shine.addColorStop(0.35, '#fff0a0');
+    shine.addColorStop(0.52, '#ffd700');
+    shine.addColorStop(0.68, '#ffe066');
+    shine.addColorStop(0.85, '#ffd700');
+    shine.addColorStop(1.00, '#fffbe6');
+    ctx.fillStyle = shine;
+    roundRect(ctx, 0, 0, W, H, R); ctx.fill();
+    // white bevel on top
+    const bevel = ctx.createLinearGradient(0, 0, 0, 80);
+    bevel.addColorStop(0, 'rgba(255,255,255,0.55)');
+    bevel.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = bevel;
+    roundRect(ctx, 4, 4, W-8, H-8, R-2); ctx.fill();
+  } else if (isDark) {
+    const db = ctx.createLinearGradient(0, 0, W, H);
+    db.addColorStop(0, '#3a0000');
+    db.addColorStop(0.5, '#1a0000');
+    db.addColorStop(1, '#3a0000');
+    ctx.fillStyle = db;
+    roundRect(ctx, 0, 0, W, H, R); ctx.fill();
+  } else {
+    const sb = ctx.createLinearGradient(0, 0, W, H);
+    sb.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},0.8)`);
+    sb.addColorStop(0.5, '#444');
+    sb.addColorStop(1, `rgba(${rgb.r},${rgb.g},${rgb.b},0.6)`);
+    ctx.fillStyle = sb;
+    roundRect(ctx, 0, 0, W, H, R); ctx.fill();
+  }
 
-  // ── Outer card border with holographic gradient ──
-  const holoBorder = ctx.createLinearGradient(0, 0, W, H);
-  holoBorder.addColorStop(0.00, '#ffd700');
-  holoBorder.addColorStop(0.20, '#fff7a1');
-  holoBorder.addColorStop(0.40, `rgb(${rgb.r},${rgb.g},${rgb.b})`);
-  holoBorder.addColorStop(0.60, '#c0c0c0');
-  holoBorder.addColorStop(0.80, '#ffd700');
-  holoBorder.addColorStop(1.00, '#fff7a1');
-  ctx.fillStyle = holoBorder;
-  roundRect(ctx, 0, 0, W, H, R); ctx.fill();
+  // ── 2. INNER BACKGROUND ─────────────────────────────────
+  const bg = ctx.createLinearGradient(BM, BM, BM, H - BM);
+  if (isShiny) {
+    bg.addColorStop(0,   '#1c1600');
+    bg.addColorStop(0.4, '#110e00');
+    bg.addColorStop(1,   '#0a0800');
+  } else if (isDark) {
+    bg.addColorStop(0, '#0d0000');
+    bg.addColorStop(1, '#050000');
+  } else {
+    bg.addColorStop(0, '#141414');
+    bg.addColorStop(1, '#0a0a0a');
+  }
+  ctx.fillStyle = bg;
+  roundRect(ctx, BM, BM, W-BM*2, H-BM*2, R-6); ctx.fill();
 
-  // ── Inner card background ──
-  const bgGrad = ctx.createLinearGradient(0, M, 0, H - M);
-  bgGrad.addColorStop(0,   '#1a1a2e');
-  bgGrad.addColorStop(0.5, '#16213e');
-  bgGrad.addColorStop(1,   '#0f0f1a');
-  ctx.fillStyle = bgGrad;
-  roundRect(ctx, M, M, W - M*2, H - M*2, R - 6); ctx.fill();
+  // Shiny diagonal shimmer on bg
+  if (isShiny) {
+    const sh = ctx.createLinearGradient(BM, BM, W-BM, H-BM);
+    sh.addColorStop(0.0,  'rgba(255,215,0,0.12)');
+    sh.addColorStop(0.3,  'rgba(255,100,50,0.04)');
+    sh.addColorStop(0.55, 'rgba(255,255,255,0.09)');
+    sh.addColorStop(0.8,  'rgba(100,180,255,0.04)');
+    sh.addColorStop(1.0,  'rgba(255,215,0,0.10)');
+    ctx.fillStyle = sh;
+    roundRect(ctx, BM, BM, W-BM*2, H-BM*2, R-6); ctx.fill();
+    // corner glow
+    const cg = ctx.createRadialGradient(BM+60, BM+60, 0, BM+60, BM+60, 320);
+    cg.addColorStop(0, 'rgba(255,215,0,0.20)');
+    cg.addColorStop(1, 'rgba(255,215,0,0)');
+    ctx.fillStyle = cg;
+    roundRect(ctx, BM, BM, W-BM*2, H-BM*2, R-6); ctx.fill();
+  }
 
-  // ── Subtle holographic shimmer overlay on bg ──
-  const shimmer = ctx.createLinearGradient(M, M, W - M, H - M);
-  shimmer.addColorStop(0,    `rgba(${rgb.r},${rgb.g},${rgb.b},0.08)`);
-  shimmer.addColorStop(0.5,  'rgba(255,255,255,0.03)');
-  shimmer.addColorStop(1,    `rgba(${rgb.r},${rgb.g},${rgb.b},0.06)`);
-  ctx.fillStyle = shimmer;
-  roundRect(ctx, M, M, W - M*2, H - M*2, R - 6); ctx.fill();
+  // ── 3. HEADER ───────────────────────────────────────────
+  // Gradient band at top
+  const hb = ctx.createLinearGradient(BM, BM, BM, BM+120);
+  hb.addColorStop(0, isShiny ? 'rgba(255,215,0,0.30)' : isDark ? 'rgba(229,62,62,0.20)' : `rgba(${rgb.r},${rgb.g},${rgb.b},0.18)`);
+  hb.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = hb;
+  roundRect(ctx, BM, BM, W-BM*2, 120, R-6); ctx.fill();
 
-  // ── TOP HEADER: name + HP ──
-  const headerY = M + 20;
-  // name
-  const nameLen = e.name.length;
-  const nameFontSize = nameLen > 18 ? 52 : nameLen > 12 ? 62 : 72;
-  ctx.font = `700 ${nameFontSize}px 'Bebas Neue', serif`;
+  // Name
+  const nLen = e.name.length;
+  const nSz  = nLen > 20 ? 50 : nLen > 13 ? 62 : 72;
+  ctx.font      = `700 ${nSz}px 'Bebas Neue', serif`;
   ctx.fillStyle = '#ffffff';
   ctx.textAlign = 'left';
-  // clip name to one line
-  let displayName = e.name;
-  while (ctx.measureText(displayName).width > W - INNER*2 - 180 && displayName.length > 3) {
-    displayName = displayName.slice(0, -1);
-  }
-  if (displayName !== e.name) displayName += '…';
-  ctx.fillText(displayName, INNER + 8, headerY + nameFontSize);
+  let dName = e.name;
+  const maxNW = W - BM*2 - PAD*2 - 160;
+  while (ctx.measureText(dName).width > maxNW && dName.length > 2) dName = dName.slice(0,-1);
+  if (dName !== e.name) dName += '…';
+  ctx.fillText(dName, BM + PAD, BM + nSz + 12);
 
-  // HP badge (total votes as "HP")
-  const hpText = `${total} VP`;
-  ctx.font = '700 38px Inter, sans-serif';
-  ctx.fillStyle = hex;
+  // Vote count top-right
+  ctx.font      = '700 34px Inter, sans-serif';
+  ctx.fillStyle = isShiny ? '#ffd700' : hex;
   ctx.textAlign = 'right';
-  ctx.fillText(hpText, W - INNER - 8, headerY + 48);
-  ctx.font = '500 24px Inter, sans-serif';
-  ctx.fillStyle = '#888';
-  ctx.fillText('VOTE POWER', W - INNER - 8, headerY + 76);
+  ctx.fillText(`${total}`, W - BM - PAD, BM + 52);
+  ctx.font      = '500 20px Inter, sans-serif';
+  ctx.fillStyle = '#666';
+  ctx.fillText('VOTES', W - BM - PAD, BM + 76);
 
-  // ── Category type pill ──
-  const catLabel = cd.parent === 'ent' ? `${cd.icon} ${cd.label.toUpperCase()}` 
-                 : cd.parent ? `⚡ ${cd.label.toUpperCase()}` 
-                 : `${cd.icon} ${cd.label.toUpperCase()}`;
+  // Category pill
   ctx.textAlign = 'left';
-  ctx.font = '600 26px Inter, sans-serif';
-  const pillW = ctx.measureText(catLabel).width + 40;
-  // pill background
-  ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.25)`;
-  roundRect(ctx, INNER + 8, headerY + nameFontSize + 14, pillW, 42, 21); ctx.fill();
-  ctx.strokeStyle = hex;
+  ctx.font = '600 23px Inter, sans-serif';
+  const catLabel = cd.parent === 'ent' ? `${cd.icon} ${cd.label.toUpperCase()}`
+                 : cd.parent           ? `⚡ ${cd.label.toUpperCase()}`
+                 :                       `${cd.icon} ${cd.label.toUpperCase()}`;
+  const pW = ctx.measureText(catLabel).width + 36;
+  const pX = BM + PAD, pY = BM + nSz + 22, pH = 36;
+  ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.22)`;
+  roundRect(ctx, pX, pY, pW, pH, pH/2); ctx.fill();
+  ctx.strokeStyle = isShiny ? '#ffd700' : hex;
   ctx.lineWidth = 1.5;
-  roundRect(ctx, INNER + 8, headerY + nameFontSize + 14, pillW, 42, 21); ctx.stroke();
-  ctx.fillStyle = hex;
-  ctx.fillText(catLabel, INNER + 28, headerY + nameFontSize + 42);
+  roundRect(ctx, pX, pY, pW, pH, pH/2); ctx.stroke();
+  ctx.fillStyle = isShiny ? '#ffd700' : hex;
+  ctx.fillText(catLabel, pX + 18, pY + 26);
 
-  // ── ARTWORK FRAME ──
-  const artTop  = headerY + nameFontSize + 80;
-  const artH    = 440;
-  const artW    = W - INNER*2;
-  const artX    = INNER;
+  // ── 4. ARTWORK ──────────────────────────────────────────
+  const artX = BM + PAD - 4;
+  const artY = BM + nSz + 22 + pH + 18;
+  const artW = W - BM*2 - PAD*2 + 8;
+  const artH = 380;
 
-  // art border (holo gradient)
-  const artBorder = ctx.createLinearGradient(artX, artTop, artX + artW, artTop + artH);
-  artBorder.addColorStop(0,   '#ffd700');
-  artBorder.addColorStop(0.5, `rgb(${rgb.r},${rgb.g},${rgb.b})`);
-  artBorder.addColorStop(1,   '#c0c0c0');
-  ctx.fillStyle = artBorder;
-  roundRect(ctx, artX - 4, artTop - 4, artW + 8, artH + 8, 18); ctx.fill();
+  // Art frame
+  if (isShiny) {
+    const af = ctx.createLinearGradient(artX, artY, artX+artW, artY+artH);
+    af.addColorStop(0,    '#ffd700');
+    af.addColorStop(0.33, '#fff0a0');
+    af.addColorStop(0.66, '#ffd700');
+    af.addColorStop(1,    '#ffe066');
+    ctx.fillStyle = af;
+    roundRect(ctx, artX-5, artY-5, artW+10, artH+10, 20); ctx.fill();
+  } else {
+    ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.55)`;
+    roundRect(ctx, artX-3, artY-3, artW+6, artH+6, 18); ctx.fill();
+  }
+  ctx.fillStyle = '#0a0a0a';
+  roundRect(ctx, artX, artY, artW, artH, 15); ctx.fill();
 
-  // art background
-  ctx.fillStyle = '#0d0d1a';
-  roundRect(ctx, artX, artTop, artW, artH, 14); ctx.fill();
-
-  // art image or emoji fallback
   if (e.image) {
     await new Promise(resolve => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
         ctx.save();
-        roundRect(ctx, artX, artTop, artW, artH, 14);
-        ctx.clip();
-        // cover-fit the image
-        const iw = img.naturalWidth, ih = img.naturalHeight;
-        const scale = Math.max(artW / iw, artH / ih);
-        const dw = iw * scale, dh = ih * scale;
-        const dx = artX + (artW - dw) / 2;
-        const dy = artTop + (artH - dh) / 2;
-        ctx.drawImage(img, dx, dy, dw, dh);
-        // Dark vignette overlay
-        const vig = ctx.createRadialGradient(artX + artW/2, artTop + artH/2, artH*0.2, artX + artW/2, artTop + artH/2, artH*0.75);
-        vig.addColorStop(0, 'rgba(0,0,0,0)');
-        vig.addColorStop(1, 'rgba(0,0,0,0.55)');
-        ctx.fillStyle = vig;
-        ctx.fillRect(artX, artTop, artW, artH);
+        roundRect(ctx, artX, artY, artW, artH, 15); ctx.clip();
+        const sc = Math.max(artW/img.naturalWidth, artH/img.naturalHeight);
+        const dw = img.naturalWidth*sc, dh = img.naturalHeight*sc;
+        ctx.drawImage(img, artX+(artW-dw)/2, artY+(artH-dh)/2, dw, dh);
+        // bottom fade
+        const fade = ctx.createLinearGradient(artX, artY+artH*0.5, artX, artY+artH);
+        fade.addColorStop(0, 'rgba(0,0,0,0)');
+        fade.addColorStop(1, 'rgba(0,0,0,0.65)');
+        ctx.fillStyle = fade;
+        ctx.fillRect(artX, artY, artW, artH);
         ctx.restore();
+        // sparkle dots for shiny
+        if (isShiny) {
+          ctx.save();
+          roundRect(ctx, artX, artY, artW, artH, 15); ctx.clip();
+          [[0.12,0.10],[0.85,0.15],[0.5,0.07],[0.25,0.8],[0.72,0.68],[0.92,0.4]].forEach(([fx,fy]) => {
+            const sg = ctx.createRadialGradient(artX+artW*fx,artY+artH*fy,0,artX+artW*fx,artY+artH*fy,26);
+            sg.addColorStop(0,'rgba(255,255,255,0.6)');
+            sg.addColorStop(1,'rgba(255,255,255,0)');
+            ctx.fillStyle = sg;
+            ctx.beginPath(); ctx.arc(artX+artW*fx,artY+artH*fy,26,0,Math.PI*2); ctx.fill();
+          });
+          ctx.restore();
+        }
         resolve();
       };
       img.onerror = () => {
-        // Emoji fallback centred in art box
-        ctx.font = '180px serif';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = 'rgba(255,255,255,0.15)';
-        ctx.fillText(cd.defaultAv, artX + artW/2, artTop + artH/2 + 60);
+        ctx.font = '160px serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.15)`;
+        ctx.fillText(cd.defaultAv, artX+artW/2, artY+artH/2+55);
         resolve();
       };
       img.src = e.image;
     });
   } else {
-    ctx.font = '200px serif';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(255,255,255,0.12)';
-    ctx.fillText(cd.defaultAv, artX + artW/2, artTop + artH/2 + 70);
+    ctx.font = '170px serif'; ctx.textAlign = 'center';
+    ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.12)`;
+    ctx.fillText(cd.defaultAv, artX+artW/2, artY+artH/2+55);
   }
 
-  // ── VERDICT SECTION (like Pokémon HP/moves box) ──
-  const infoTop = artTop + artH + 24;
-  const infoH   = H - infoTop - M - 20;
+  // ── 5. INFO SECTION ─────────────────────────────────────
+  const infoY = artY + artH + 18;
+  const infoW = W - BM*2 - PAD*2;
+  const infoX = BM + PAD;
+  const infoH = H - infoY - BM - PAD + 4;
 
-  // info box bg
-  const infoGrad = ctx.createLinearGradient(INNER, infoTop, INNER, infoTop + infoH);
-  infoGrad.addColorStop(0, 'rgba(255,255,255,0.06)');
-  infoGrad.addColorStop(1, 'rgba(255,255,255,0.02)');
-  ctx.fillStyle = infoGrad;
-  roundRect(ctx, INNER, infoTop, artW, infoH, 16); ctx.fill();
-  ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.3)`;
+  const ib = ctx.createLinearGradient(infoX, infoY, infoX, infoY+infoH);
+  ib.addColorStop(0, 'rgba(255,255,255,0.07)');
+  ib.addColorStop(1, 'rgba(255,255,255,0.02)');
+  ctx.fillStyle = ib;
+  roundRect(ctx, infoX, infoY, infoW, infoH, 16); ctx.fill();
+  ctx.strokeStyle = isShiny ? 'rgba(255,215,0,0.45)' : `rgba(${rgb.r},${rgb.g},${rgb.b},0.3)`;
   ctx.lineWidth = 1.5;
-  roundRect(ctx, INNER, infoTop, artW, infoH, 16); ctx.stroke();
+  roundRect(ctx, infoX, infoY, infoW, infoH, 16); ctx.stroke();
 
-  // "VERDICT" label
-  ctx.font = '600 22px Inter, sans-serif';
-  ctx.fillStyle = '#666';
+  // Verdict title
+  const vY = infoY + 56;
+  ctx.font = `700 72px 'Bebas Neue', serif`;
+  ctx.fillStyle = isShiny ? '#ffd700' : hex;
   ctx.textAlign = 'left';
-  ctx.letterSpacing = '3px';
-  ctx.fillText('VERDICT', INNER + 24, infoTop + 36);
-  ctx.letterSpacing = '0px';
+  ctx.fillText(`${title.icon}  ${title.name.toUpperCase()}`, infoX + 20, vY);
 
-  // Verdict title (big, coloured)
-  ctx.font = `700 78px 'Bebas Neue', serif`;
-  ctx.fillStyle = hex;
-  ctx.fillText(`${title.icon} ${title.name.toUpperCase()}`, INNER + 20, infoTop + 108);
-
-  // verdict desc (truncated)
+  // Desc (truncated to one line)
   let desc = title.desc || '';
-  ctx.font = '400 26px Inter, sans-serif';
-  ctx.fillStyle = '#888';
-  const maxDescW = artW - 48;
-  while (ctx.measureText(desc).width > maxDescW && desc.length > 10) desc = desc.slice(0, -1);
-  if (desc !== title.desc) desc += '…';
-  ctx.fillText(desc, INNER + 24, infoTop + 148);
+  ctx.font = '400 23px Inter, sans-serif';
+  ctx.fillStyle = '#777';
+  const maxDW = infoW - 40;
+  while (ctx.measureText(desc).width > maxDW && desc.length > 8) desc = desc.slice(0,-1);
+  if (desc !== (title.desc||'')) desc += '…';
+  ctx.fillText(desc, infoX + 20, vY + 36);
 
-  // Thin divider
-  ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.2)`;
+  // Divider
+  ctx.strokeStyle = isShiny ? 'rgba(255,215,0,0.2)' : `rgba(${rgb.r},${rgb.g},${rgb.b},0.15)`;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(INNER + 24, infoTop + 168);
-  ctx.lineTo(INNER + artW - 24, infoTop + 168);
+  ctx.moveTo(infoX+20, vY+54); ctx.lineTo(infoX+infoW-20, vY+54);
   ctx.stroke();
 
   // Vote bar
-  const barY  = infoTop + 190;
-  const barH2 = 16;
-  const barW2 = artW - 48;
-  const barX  = INNER + 24;
+  const bY=vY+80, bH=13, bW=infoW-40, bX=infoX+20;
+  ctx.font='600 23px Inter, sans-serif';
+  ctx.fillStyle='#e53e3e'; ctx.textAlign='left';
+  ctx.fillText(`${sPct}% ${cd.sStatLbl.toUpperCase()}`, bX, bY-8);
+  ctx.fillStyle='#3b82f6'; ctx.textAlign='right';
+  ctx.fillText(`${gPct}% ${cd.gStatLbl.toUpperCase()}`, bX+bW, bY-8);
+  ctx.fillStyle='#111'; roundRect(ctx,bX,bY,bW,bH,7); ctx.fill();
+  if(sPct>0){ctx.fillStyle='#e53e3e'; roundRect(ctx,bX,bY,bW*sPct/100,bH,7); ctx.fill();}
+  if(gPct>0){ctx.fillStyle='#3b82f6'; const gw=bW*gPct/100; roundRect(ctx,bX+bW-gw,bY,gw,bH,7); ctx.fill();}
 
-  ctx.font = '600 26px Inter, sans-serif';
-  ctx.fillStyle = '#e53e3e';
-  ctx.textAlign = 'left';
-  ctx.fillText(`${sPct}% ${cd.sStatLbl.toUpperCase()}`, barX, barY - 10);
-  ctx.fillStyle = '#3b82f6';
-  ctx.textAlign = 'right';
-  ctx.fillText(`${gPct}% ${cd.gStatLbl.toUpperCase()}`, barX + barW2, barY - 10);
-
-  ctx.fillStyle = '#1a1a2e';
-  roundRect(ctx, barX, barY, barW2, barH2, 8); ctx.fill();
-
-  if (sPct > 0) {
-    ctx.fillStyle = '#e53e3e';
-    roundRect(ctx, barX, barY, barW2 * sPct / 100, barH2, 8); ctx.fill();
-  }
-  if (gPct > 0) {
-    ctx.fillStyle = '#3b82f6';
-    const gw = barW2 * gPct / 100;
-    roundRect(ctx, barX + barW2 - gw, barY, gw, barH2, 8); ctx.fill();
-  }
-
-  // ── FOOTER ──
-  const footY = H - M - 52;  // moved up so text sits inside the gold border
-  ctx.font = '700 28px Inter, sans-serif';
-  ctx.fillStyle = hex;
-  ctx.textAlign = 'left';
-  ctx.fillText('cooked.gg', INNER + 24, footY);
-  ctx.font = '400 26px Inter, sans-serif';
-  ctx.fillStyle = '#888';
-  ctx.textAlign = 'right';
-  ctx.fillText('cast your vote →', W - INNER - 24, footY);
+  // Footer
+  const fY = H - BM - PAD;
+  ctx.font='700 25px Inter, sans-serif';
+  ctx.fillStyle = isShiny ? '#ffd700' : hex;
+  ctx.textAlign='left';
+  ctx.fillText('cooked.gg', infoX+20, fY);
+  ctx.font='400 23px Inter, sans-serif';
+  ctx.fillStyle='#555'; ctx.textAlign='right';
+  ctx.fillText('cast your vote →', infoX+infoW-20, fY);
 
   return canvas.toDataURL('image/png');
 }
@@ -2398,6 +2425,7 @@ function hexToRgb(hex) {
   const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return r ? { r: parseInt(r[1],16), g: parseInt(r[2],16), b: parseInt(r[3],16) } : null;
 }
+
 
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
