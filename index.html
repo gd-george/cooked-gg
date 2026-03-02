@@ -1814,12 +1814,19 @@ let suggestedCat = null;
 // Top-level tab pick (Name, Place, Animal)
 function pickCat(cat, btn) {
   curCat = cat;
-  // close thing subcats if we're moving away
+  // close thing subcats if moving away
   if (!THING_SUBCATS.includes(cat)) {
     thingOpen = false;
     document.getElementById('subcatRow').style.display = 'none';
     document.getElementById('thingParentBtn').classList.remove('active');
     document.getElementById('thingParentBtn').textContent = '⚡ Thing ▾';
+  }
+  // close ent subcats if moving away
+  if (!ENT_SUBCATS.includes(cat)) {
+    entOpen = false;
+    document.getElementById('entSubcatRow').style.display = 'none';
+    document.getElementById('entParentBtn').classList.remove('active');
+    document.getElementById('entParentBtn').textContent = '🎬 Ent ▾';
   }
   document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
@@ -2154,183 +2161,240 @@ function refreshShare(e) {
 async function drawShareCard(e) {
   const canvas = document.getElementById('shareCanvas');
   const ctx = canvas.getContext('2d');
-  const W = 1080, H = 1080;
+  // Portrait card — Pokémon ratio ~630×880
+  const W = 900, H = 1260;
   canvas.width = W; canvas.height = H;
 
-  const title = getTitle(e);
-  const cd = CATS[e.cat];
-  const total = e.smooth + e.giga;
-  const gPct = total > 0 ? Math.round((e.giga / total) * 100) : 50;
-  const sPct = 100 - gPct;
+  const title  = getTitle(e);
+  const cd     = CATS[e.cat];
+  const total  = e.smooth + e.giga;
+  const gPct   = total > 0 ? Math.round((e.giga  / total) * 100) : 50;
+  const sPct   = 100 - gPct;
+  const M      = 36;   // card margin
+  const R      = 32;   // outer corner radius
+  const INNER  = M + 14;
 
-  // ── Background ──
-  ctx.fillStyle = '#0d0d0d';
-  ctx.fillRect(0, 0, W, H);
+  // ── Pick palette from title colour ──
+  const hex = title.color || '#d4a017';
+  const rgb = hexToRgb(hex) || {r:212,g:160,b:23};
 
-  // ── Watermark photo (if available) ──
-  // Drawn before glows so everything sits on top
+  // ── Outer card border with holographic gradient ──
+  const holoBorder = ctx.createLinearGradient(0, 0, W, H);
+  holoBorder.addColorStop(0.00, '#ffd700');
+  holoBorder.addColorStop(0.20, '#fff7a1');
+  holoBorder.addColorStop(0.40, `rgb(${rgb.r},${rgb.g},${rgb.b})`);
+  holoBorder.addColorStop(0.60, '#c0c0c0');
+  holoBorder.addColorStop(0.80, '#ffd700');
+  holoBorder.addColorStop(1.00, '#fff7a1');
+  ctx.fillStyle = holoBorder;
+  roundRect(ctx, 0, 0, W, H, R); ctx.fill();
+
+  // ── Inner card background ──
+  const bgGrad = ctx.createLinearGradient(0, M, 0, H - M);
+  bgGrad.addColorStop(0,   '#1a1a2e');
+  bgGrad.addColorStop(0.5, '#16213e');
+  bgGrad.addColorStop(1,   '#0f0f1a');
+  ctx.fillStyle = bgGrad;
+  roundRect(ctx, M, M, W - M*2, H - M*2, R - 6); ctx.fill();
+
+  // ── Subtle holographic shimmer overlay on bg ──
+  const shimmer = ctx.createLinearGradient(M, M, W - M, H - M);
+  shimmer.addColorStop(0,    `rgba(${rgb.r},${rgb.g},${rgb.b},0.08)`);
+  shimmer.addColorStop(0.5,  'rgba(255,255,255,0.03)');
+  shimmer.addColorStop(1,    `rgba(${rgb.r},${rgb.g},${rgb.b},0.06)`);
+  ctx.fillStyle = shimmer;
+  roundRect(ctx, M, M, W - M*2, H - M*2, R - 6); ctx.fill();
+
+  // ── TOP HEADER: name + HP ──
+  const headerY = M + 20;
+  // name
+  const nameLen = e.name.length;
+  const nameFontSize = nameLen > 18 ? 52 : nameLen > 12 ? 62 : 72;
+  ctx.font = `700 ${nameFontSize}px 'Bebas Neue', serif`;
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'left';
+  // clip name to one line
+  let displayName = e.name;
+  while (ctx.measureText(displayName).width > W - INNER*2 - 180 && displayName.length > 3) {
+    displayName = displayName.slice(0, -1);
+  }
+  if (displayName !== e.name) displayName += '…';
+  ctx.fillText(displayName, INNER + 8, headerY + nameFontSize);
+
+  // HP badge (total votes as "HP")
+  const hpText = `${total} VP`;
+  ctx.font = '700 38px Inter, sans-serif';
+  ctx.fillStyle = hex;
+  ctx.textAlign = 'right';
+  ctx.fillText(hpText, W - INNER - 8, headerY + 48);
+  ctx.font = '500 24px Inter, sans-serif';
+  ctx.fillStyle = '#888';
+  ctx.fillText('VOTE POWER', W - INNER - 8, headerY + 76);
+
+  // ── Category type pill ──
+  const catLabel = cd.parent === 'ent' ? `${cd.icon} ${cd.label.toUpperCase()}` 
+                 : cd.parent ? `⚡ ${cd.label.toUpperCase()}` 
+                 : `${cd.icon} ${cd.label.toUpperCase()}`;
+  ctx.textAlign = 'left';
+  ctx.font = '600 26px Inter, sans-serif';
+  const pillW = ctx.measureText(catLabel).width + 40;
+  // pill background
+  ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.25)`;
+  roundRect(ctx, INNER + 8, headerY + nameFontSize + 14, pillW, 42, 21); ctx.fill();
+  ctx.strokeStyle = hex;
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, INNER + 8, headerY + nameFontSize + 14, pillW, 42, 21); ctx.stroke();
+  ctx.fillStyle = hex;
+  ctx.fillText(catLabel, INNER + 28, headerY + nameFontSize + 42);
+
+  // ── ARTWORK FRAME ──
+  const artTop  = headerY + nameFontSize + 80;
+  const artH    = 440;
+  const artW    = W - INNER*2;
+  const artX    = INNER;
+
+  // art border (holo gradient)
+  const artBorder = ctx.createLinearGradient(artX, artTop, artX + artW, artTop + artH);
+  artBorder.addColorStop(0,   '#ffd700');
+  artBorder.addColorStop(0.5, `rgb(${rgb.r},${rgb.g},${rgb.b})`);
+  artBorder.addColorStop(1,   '#c0c0c0');
+  ctx.fillStyle = artBorder;
+  roundRect(ctx, artX - 4, artTop - 4, artW + 8, artH + 8, 18); ctx.fill();
+
+  // art background
+  ctx.fillStyle = '#0d0d1a';
+  roundRect(ctx, artX, artTop, artW, artH, 14); ctx.fill();
+
+  // art image or emoji fallback
   if (e.image) {
     await new Promise(resolve => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
-        // Cover the right ~60% of the card, centred vertically
-        const iw = img.naturalWidth, ih = img.naturalHeight;
-        const drawH = H;
-        const drawW = (iw / ih) * drawH;
-        const dx = W - drawW * 0.72; // anchor right side
-        const dy = 0;
-
-        // Save/clip to card bounds
         ctx.save();
-        ctx.globalAlpha = 0.13; // very faded — just a ghost
-        ctx.drawImage(img, dx, dy, drawW, drawH);
+        roundRect(ctx, artX, artTop, artW, artH, 14);
+        ctx.clip();
+        // cover-fit the image
+        const iw = img.naturalWidth, ih = img.naturalHeight;
+        const scale = Math.max(artW / iw, artH / ih);
+        const dw = iw * scale, dh = ih * scale;
+        const dx = artX + (artW - dw) / 2;
+        const dy = artTop + (artH - dh) / 2;
+        ctx.drawImage(img, dx, dy, dw, dh);
+        // Dark vignette overlay
+        const vig = ctx.createRadialGradient(artX + artW/2, artTop + artH/2, artH*0.2, artX + artW/2, artTop + artH/2, artH*0.75);
+        vig.addColorStop(0, 'rgba(0,0,0,0)');
+        vig.addColorStop(1, 'rgba(0,0,0,0.55)');
+        ctx.fillStyle = vig;
+        ctx.fillRect(artX, artTop, artW, artH);
         ctx.restore();
-
-        // Dark gradient over the watermark so text stays sharp
-        // Left side fully dark, fading to semi-transparent on the right
-        const wmGrad = ctx.createLinearGradient(0, 0, W, 0);
-        wmGrad.addColorStop(0,    'rgba(13,13,13,1)');
-        wmGrad.addColorStop(0.35, 'rgba(13,13,13,0.92)');
-        wmGrad.addColorStop(0.7,  'rgba(13,13,13,0.6)');
-        wmGrad.addColorStop(1,    'rgba(13,13,13,0.35)');
-        ctx.fillStyle = wmGrad;
-        ctx.fillRect(0, 0, W, H);
-
         resolve();
       };
-      img.onerror = () => resolve(); // no image — carry on
+      img.onerror = () => {
+        // Emoji fallback centred in art box
+        ctx.font = '180px serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.fillText(cd.defaultAv, artX + artW/2, artTop + artH/2 + 60);
+        resolve();
+      };
       img.src = e.image;
     });
+  } else {
+    ctx.font = '200px serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    ctx.fillText(cd.defaultAv, artX + artW/2, artTop + artH/2 + 70);
   }
 
-  // Subtle top-left glow
-  const grd = ctx.createRadialGradient(0, 0, 0, 0, 0, 620);
-  grd.addColorStop(0, 'rgba(59,130,246,0.12)');
-  grd.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = grd;
-  ctx.fillRect(0, 0, W, H);
+  // ── VERDICT SECTION (like Pokémon HP/moves box) ──
+  const infoTop = artTop + artH + 24;
+  const infoH   = H - infoTop - M - 20;
 
-  // Bottom-right glow (red)
-  const grd2 = ctx.createRadialGradient(W, H, 0, W, H, 620);
-  grd2.addColorStop(0, 'rgba(229,62,62,0.10)');
-  grd2.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = grd2;
-  ctx.fillRect(0, 0, W, H);
+  // info box bg
+  const infoGrad = ctx.createLinearGradient(INNER, infoTop, INNER, infoTop + infoH);
+  infoGrad.addColorStop(0, 'rgba(255,255,255,0.06)');
+  infoGrad.addColorStop(1, 'rgba(255,255,255,0.02)');
+  ctx.fillStyle = infoGrad;
+  roundRect(ctx, INNER, infoTop, artW, infoH, 16); ctx.fill();
+  ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.3)`;
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, INNER, infoTop, artW, infoH, 16); ctx.stroke();
 
-  // ── Border ──
-  ctx.strokeStyle = '#272727';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(40, 40, W - 80, H - 80);
-
-  // ── Site tag top ──
-  ctx.font = '500 28px Inter, sans-serif';
-  ctx.fillStyle = '#555';
-  ctx.letterSpacing = '4px';
+  // "VERDICT" label
+  ctx.font = '600 22px Inter, sans-serif';
+  ctx.fillStyle = '#666';
   ctx.textAlign = 'left';
-  ctx.fillText('COOKED.GG', 80, 100);
+  ctx.letterSpacing = '3px';
+  ctx.fillText('VERDICT', INNER + 24, infoTop + 36);
   ctx.letterSpacing = '0px';
 
-  // Divider line under tag
-  ctx.strokeStyle = '#272727';
+  // Verdict title (big, coloured)
+  ctx.font = `700 78px 'Bebas Neue', serif`;
+  ctx.fillStyle = hex;
+  ctx.fillText(`${title.icon} ${title.name.toUpperCase()}`, INNER + 20, infoTop + 108);
+
+  // verdict desc (truncated)
+  let desc = title.desc || '';
+  ctx.font = '400 26px Inter, sans-serif';
+  ctx.fillStyle = '#888';
+  const maxDescW = artW - 48;
+  while (ctx.measureText(desc).width > maxDescW && desc.length > 10) desc = desc.slice(0, -1);
+  if (desc !== title.desc) desc += '…';
+  ctx.fillText(desc, INNER + 24, infoTop + 148);
+
+  // Thin divider
+  ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.2)`;
   ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(80, 116); ctx.lineTo(W - 80, 116); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(INNER + 24, infoTop + 168);
+  ctx.lineTo(INNER + artW - 24, infoTop + 168);
+  ctx.stroke();
 
-  // ── Category tag ──
-  ctx.font = '500 30px Inter, sans-serif';
-  ctx.fillStyle = '#555';
-  ctx.textAlign = 'left';
-  const parentLabel = cd.parent === 'ent' ? `${cd.icon} ${cd.label}` : cd.parent ? `⚡ ${cd.label}` : `${cd.icon} ${cd.label}`;
-  ctx.fillText(parentLabel.toUpperCase(), 80, 188);
+  // Vote bar
+  const barY  = infoTop + 190;
+  const barH2 = 16;
+  const barW2 = artW - 48;
+  const barX  = INNER + 24;
 
-  // ── Entry name ──
-  ctx.fillStyle = '#efefef';
-  ctx.textAlign = 'left';
-  // Responsive font size based on name length
-  const nameLen = e.name.length;
-  const nameFontSize = nameLen > 22 ? 88 : nameLen > 14 ? 108 : 130;
-  ctx.font = `700 ${nameFontSize}px 'Bebas Neue', serif`;
-  // Word-wrap the name
-  const words = e.name.split(' ');
-  let line = '', lines = [];
-  const maxW = W - 160;
-  for (const word of words) {
-    const test = line ? line + ' ' + word : word;
-    if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = word; }
-    else line = test;
-  }
-  if (line) lines.push(line);
-  const lineH = nameFontSize * 1.05;
-  const nameY = lines.length > 2 ? 300 : 340;
-  lines.slice(0, 3).forEach((l, i) => ctx.fillText(l, 80, nameY + i * lineH));
-
-  // ── Verdict ──
-  const verdictY = nameY + lines.slice(0,3).length * lineH + 50;
-  ctx.font = '500 32px Inter, sans-serif';
-  ctx.fillStyle = '#555';
-  ctx.fillText('CURRENT VERDICT', 80, verdictY);
-
-  ctx.font = `700 68px 'Bebas Neue', serif`;
-  ctx.fillStyle = title.color;
-  ctx.fillText(`${title.icon}  ${title.name.toUpperCase()}`, 80, verdictY + 74);
-
-  // ── Vote bar ──
-  const barY = verdictY + 120;
-  const barH = 20;
-  const barW = W - 160;
-
-  // Labels
-  ctx.font = '600 30px Inter, sans-serif';
+  ctx.font = '600 26px Inter, sans-serif';
   ctx.fillStyle = '#e53e3e';
   ctx.textAlign = 'left';
-  ctx.fillText(`${sPct}% ${cd.sStatLbl.toUpperCase()}`, 80, barY - 14);
+  ctx.fillText(`${sPct}% ${cd.sStatLbl.toUpperCase()}`, barX, barY - 10);
   ctx.fillStyle = '#3b82f6';
   ctx.textAlign = 'right';
-  ctx.fillText(`${gPct}% ${cd.gStatLbl.toUpperCase()}`, W - 80, barY - 14);
+  ctx.fillText(`${gPct}% ${cd.gStatLbl.toUpperCase()}`, barX + barW2, barY - 10);
 
-  // Bar background
-  ctx.fillStyle = '#272727';
-  roundRect(ctx, 80, barY, barW, barH, 10);
-  ctx.fill();
+  ctx.fillStyle = '#1a1a2e';
+  roundRect(ctx, barX, barY, barW2, barH2, 8); ctx.fill();
 
-  // Bar fill (smooth = red left, giga = blue right)
   if (sPct > 0) {
     ctx.fillStyle = '#e53e3e';
-    const sw = Math.max((barW * sPct / 100) - 0, 0);
-    roundRect(ctx, 80, barY, sw, barH, 10);
-    ctx.fill();
+    roundRect(ctx, barX, barY, barW2 * sPct / 100, barH2, 8); ctx.fill();
   }
   if (gPct > 0) {
     ctx.fillStyle = '#3b82f6';
-    const gw = Math.max((barW * gPct / 100) - 0, 0);
-    roundRect(ctx, 80 + barW - gw, barY, gw, barH, 10);
-    ctx.fill();
+    const gw = barW2 * gPct / 100;
+    roundRect(ctx, barX + barW2 - gw, barY, gw, barH2, 8); ctx.fill();
   }
 
-  // Total votes
-  ctx.font = '500 28px Inter, sans-serif';
+  // ── FOOTER ──
+  const footY = H - M - 18;
+  ctx.font = '700 28px Inter, sans-serif';
+  ctx.fillStyle = hex;
+  ctx.textAlign = 'left';
+  ctx.fillText('cooked.gg', INNER + 24, footY);
+  ctx.font = '400 26px Inter, sans-serif';
   ctx.fillStyle = '#555';
-  ctx.textAlign = 'left';
-  ctx.fillText(`${total} vote${total !== 1 ? 's' : ''} so far`, 80, barY + barH + 38);
-
-  // ── CTA bottom ──
-  const ctaY = H - 120;
-
-  // divider
-  ctx.strokeStyle = '#272727';
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(80, ctaY - 28); ctx.lineTo(W - 80, ctaY - 28); ctx.stroke();
-
-  ctx.font = `700 52px 'Bebas Neue', serif`;
-  ctx.fillStyle = '#efefef';
-  ctx.textAlign = 'left';
-  ctx.fillText('COOKED OR NOT? CAST YOUR VOTE', 80, ctaY + 14);
-
-  ctx.font = '600 34px Inter, sans-serif';
-  ctx.fillStyle = '#3b82f6';
-  ctx.fillText('Vote at cooked.gg', 80, ctaY + 62);
+  ctx.textAlign = 'right';
+  ctx.fillText('cast your vote →', W - INNER - 24, footY);
 
   return canvas.toDataURL('image/png');
+}
+
+function hexToRgb(hex) {
+  const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return r ? { r: parseInt(r[1],16), g: parseInt(r[2],16), b: parseInt(r[3],16) } : null;
 }
 
 function roundRect(ctx, x, y, w, h, r) {
