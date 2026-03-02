@@ -760,7 +760,7 @@ nav {
 
 .share-preview {
   width: 100%;
-  aspect-ratio: 900 / 1260;
+  aspect-ratio: 1 / 1;
   border-radius: 8px;
   border: 1px solid var(--border);
   display: block;
@@ -1228,7 +1228,7 @@ nav {
 
     <div class="share-section">
       <!-- Canvas (hidden) used to draw the card, img shows the preview -->
-      <canvas id="shareCanvas" width="900" height="1260"></canvas>
+      <canvas id="shareCanvas" width="1080" height="1080"></canvas>
       <img id="sharePreview" class="share-preview" alt="Share card preview" onclick="doShare()">
       <button class="share-btn" id="shareBtn" onclick="doShare()">
         <span>↑</span> Share for votes
@@ -2162,55 +2162,46 @@ function refreshShare(e) {
 
 async function drawShareCard(e) {
   const canvas = document.getElementById('shareCanvas');
-  const ctx    = canvas.getContext('2d');
-  const W = 900, H = 1260;
+  const ctx = canvas.getContext('2d');
+  const W = 1080, H = 1080;
   canvas.width = W; canvas.height = H;
 
-  const title  = getTitle(e);
-  const cd     = CATS[e.cat];
-  const total  = e.smooth + e.giga;
-  const gPct   = total > 0 ? Math.round((e.giga / total) * 100) : 50;
-  const sPct   = 100 - gPct;
-  const isShiny = title.cls === 'badge-gold';
-  const hex     = title.color || '#555';
-  const rgb     = hexToRgb(hex) || {r:85,g:85,b:85};
-  const P = 52; // padding
+  const title = getTitle(e);
+  const cd = CATS[e.cat];
+  const total = e.smooth + e.giga;
+  const gPct = total > 0 ? Math.round((e.giga / total) * 100) : 50;
+  const sPct = 100 - gPct;
 
-  // helper — wrap text into lines
-  function wrapText(text, maxW, font) {
-    ctx.font = font;
-    const words = text.split(' ');
-    const out = [];
-    let cur = '';
-    for (const w of words) {
-      const test = cur ? cur + ' ' + w : w;
-      if (ctx.measureText(test).width > maxW && cur) { out.push(cur); cur = w; }
-      else cur = test;
-    }
-    if (cur) out.push(cur);
-    return out;
-  }
-
-  // ── 1. FULL-BLEED PHOTO BACKGROUND ──────────────────────
+  // ── Background ──
   ctx.fillStyle = '#0d0d0d';
   ctx.fillRect(0, 0, W, H);
 
+  // ── Watermark photo ──
   if (e.image) {
     await new Promise(resolve => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
-        // cover-fit into top 55% of card
-        const zone = H * 0.56;
-        const sc = Math.max(W / img.naturalWidth, zone / img.naturalHeight);
-        const dw = img.naturalWidth * sc, dh = img.naturalHeight * sc;
-        ctx.drawImage(img, (W - dw) / 2, 0, dw, dh);
-        // gradient fade: photo → dark
-        const fade = ctx.createLinearGradient(0, zone * 0.35, 0, zone + 40);
-        fade.addColorStop(0, 'rgba(13,13,13,0)');
-        fade.addColorStop(1, 'rgba(13,13,13,1)');
-        ctx.fillStyle = fade;
-        ctx.fillRect(0, 0, W, zone + 40);
+        const iw = img.naturalWidth, ih = img.naturalHeight;
+        const drawH = H;
+        const drawW = (iw / ih) * drawH;
+        const dx = W - drawW * 0.72;
+        const dy = 0;
+
+        ctx.save();
+        ctx.globalAlpha = 0.32; // raised from 0.13 — much more visible
+        ctx.drawImage(img, dx, dy, drawW, drawH);
+        ctx.restore();
+
+        // gradient overlay — left fully dark, right semi-transparent
+        const wmGrad = ctx.createLinearGradient(0, 0, W, 0);
+        wmGrad.addColorStop(0,    'rgba(13,13,13,1)');
+        wmGrad.addColorStop(0.28, 'rgba(13,13,13,0.88)');
+        wmGrad.addColorStop(0.55, 'rgba(13,13,13,0.55)');
+        wmGrad.addColorStop(1,    'rgba(13,13,13,0.18)');
+        ctx.fillStyle = wmGrad;
+        ctx.fillRect(0, 0, W, H);
+
         resolve();
       };
       img.onerror = () => resolve();
@@ -2218,150 +2209,124 @@ async function drawShareCard(e) {
     });
   }
 
-  // For shiny — gold shimmer overlay on photo area
-  if (isShiny && e.image) {
-    const shimmer = ctx.createLinearGradient(0, 0, W, H * 0.56);
-    shimmer.addColorStop(0,   'rgba(255,215,0,0.08)');
-    shimmer.addColorStop(0.5, 'rgba(255,255,255,0.04)');
-    shimmer.addColorStop(1,   'rgba(255,215,0,0.06)');
-    ctx.fillStyle = shimmer;
-    ctx.fillRect(0, 0, W, H * 0.56);
-  }
+  // Subtle top-left glow (blue)
+  const grd = ctx.createRadialGradient(0, 0, 0, 0, 0, 620);
+  grd.addColorStop(0, 'rgba(59,130,246,0.12)');
+  grd.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
 
-  // ── 2. ACCENT LINE (thin coloured bar at very top) ──────
-  const accentH = 5;
-  if (isShiny) {
-    const accentG = ctx.createLinearGradient(0, 0, W, 0);
-    accentG.addColorStop(0,   '#ffd700');
-    accentG.addColorStop(0.5, '#fff7a1');
-    accentG.addColorStop(1,   '#ffd700');
-    ctx.fillStyle = accentG;
-  } else {
-    ctx.fillStyle = hex;
-  }
-  ctx.fillRect(0, 0, W, accentH);
+  // Bottom-right glow (red)
+  const grd2 = ctx.createRadialGradient(W, H, 0, W, H, 620);
+  grd2.addColorStop(0, 'rgba(229,62,62,0.10)');
+  grd2.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grd2;
+  ctx.fillRect(0, 0, W, H);
 
-  // ── 3. TOP-LEFT: site tag ────────────────────────────────
-  ctx.font = '500 22px Inter, sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
-  ctx.textAlign = 'left';
-  ctx.fillText('COOKED.GG', P, P + 28);
+  // ── Border ──
+  ctx.strokeStyle = '#272727';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(40, 40, W - 80, H - 80);
 
-  // Category label — top right
-  const catText = cd.parent === 'ent' ? `${cd.label.toUpperCase()}`
-                : cd.parent           ? `${cd.label.toUpperCase()}`
-                :                       `${cd.label.toUpperCase()}`;
-  ctx.font = '600 22px Inter, sans-serif';
-  ctx.fillStyle = isShiny ? '#ffd700' : hex;
-  ctx.textAlign = 'right';
-  ctx.fillText(catText, W - P, P + 28);
-
-  // ── 4. NAME — sits over the bottom of the photo ─────────
-  const nameZoneY = H * 0.38; // where name block starts
-  const nLen = e.name.length;
-  const nSz  = nLen > 22 ? 72 : nLen > 14 ? 88 : 108;
-  const nameFont = `700 ${nSz}px 'Bebas Neue', serif`;
-  const nameLines = wrapText(e.name, W - P * 2, nameFont);
-  ctx.font      = nameFont;
-  ctx.fillStyle = '#ffffff';
-  ctx.textAlign = 'left';
-  const lineH = nSz * 1.0;
-  nameLines.slice(0, 3).forEach((l, i) => {
-    ctx.fillText(l, P, nameZoneY + nSz + i * lineH);
-  });
-  const nameBotY = nameZoneY + nSz + (Math.min(nameLines.length, 3) - 1) * lineH;
-
-  // ── 5. BOTTOM PANEL (dark solid section) ─────────────────
-  const panelY = nameBotY + 40;
-
-  // Thin accent line above panel
-  ctx.strokeStyle = isShiny ? 'rgba(255,215,0,0.4)' : `rgba(${rgb.r},${rgb.g},${rgb.b},0.4)`;
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(P, panelY); ctx.lineTo(W - P, panelY); ctx.stroke();
-
-  // ── 6. VERDICT ───────────────────────────────────────────
-  const vY = panelY + 60;
-
-  // Small "VERDICT" label
-  ctx.font = '500 20px Inter, sans-serif';
-  ctx.fillStyle = '#444';
-  ctx.textAlign = 'left';
-  ctx.fillText('VERDICT', P, vY);
-
-  // Verdict name — big, coloured, NO emoji in font string
-  const vNameFont = `700 80px 'Bebas Neue', serif`;
-  ctx.font      = vNameFont;
-  ctx.fillStyle = isShiny ? '#ffd700' : hex;
-  ctx.fillText(title.name.toUpperCase(), P, vY + 82);
-
-  // Emoji drawn separately to fix alignment
-  ctx.font = '54px serif';
-  ctx.textAlign = 'left';
-  const vNameW = (() => { ctx.font = vNameFont; const w = ctx.measureText(title.name.toUpperCase()).width; return w; })();
-  ctx.font = '54px serif';
-  ctx.fillStyle = '#fff';
-  ctx.fillText(title.icon, P + vNameW + 16, vY + 78);
-
-  // Desc
-  ctx.font = '400 25px Inter, sans-serif';
+  // ── Site tag top ──
+  ctx.font = '500 28px Inter, sans-serif';
   ctx.fillStyle = '#555';
   ctx.textAlign = 'left';
-  let desc = title.desc || '';
-  while (ctx.measureText(desc).width > W - P * 2 && desc.length > 8) desc = desc.slice(0,-1);
-  if (desc !== (title.desc||'')) desc += '…';
-  ctx.fillText(desc, P, vY + 82 + 38);
+  ctx.fillText('COOKED.GG', 80, 100);
 
-  // ── 7. VOTE BAR ──────────────────────────────────────────
-  const bY = vY + 82 + 38 + 44;
-  const bH = 8;
-  const bW = W - P * 2;
+  // Divider line
+  ctx.strokeStyle = '#272727';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(80, 116); ctx.lineTo(W - 80, 116); ctx.stroke();
 
-  // Labels
-  ctx.font = '600 24px Inter, sans-serif';
+  // ── Category tag ──
+  ctx.font = '500 30px Inter, sans-serif';
+  ctx.fillStyle = '#555';
+  ctx.textAlign = 'left';
+  const parentLabel = cd.parent === 'ent' ? `${cd.icon} ${cd.label}`
+                    : cd.parent ? `⚡ ${cd.label}` : `${cd.icon} ${cd.label}`;
+  ctx.fillText(parentLabel.toUpperCase(), 80, 188);
+
+  // ── Entry name ──
+  ctx.fillStyle = '#efefef';
+  ctx.textAlign = 'left';
+  const nameLen = e.name.length;
+  const nameFontSize = nameLen > 22 ? 88 : nameLen > 14 ? 108 : 130;
+  ctx.font = `700 ${nameFontSize}px 'Bebas Neue', serif`;
+  const words = e.name.split(' ');
+  let line = '', lines = [];
+  const maxW = W - 160;
+  for (const word of words) {
+    const test = line ? line + ' ' + word : word;
+    if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = word; }
+    else line = test;
+  }
+  if (line) lines.push(line);
+  const lineH = nameFontSize * 1.05;
+  const nameY = lines.length > 2 ? 300 : 340;
+  lines.slice(0, 3).forEach((l, i) => ctx.fillText(l, 80, nameY + i * lineH));
+
+  // ── Verdict ──
+  const verdictY = nameY + lines.slice(0,3).length * lineH + 50;
+  ctx.font = '500 32px Inter, sans-serif';
+  ctx.fillStyle = '#555';
+  ctx.textAlign = 'left';
+  ctx.fillText('CURRENT VERDICT', 80, verdictY);
+
+  // verdict title text only (no emoji in font string)
+  ctx.font = `700 68px 'Bebas Neue', serif`;
+  ctx.fillStyle = title.color;
+  ctx.fillText(title.name.toUpperCase(), 80, verdictY + 74);
+  // emoji drawn separately after the text
+  const vTextW = ctx.measureText(title.name.toUpperCase()).width;
+  ctx.font = '50px serif';
+  ctx.fillText(title.icon, 80 + vTextW + 16, verdictY + 68);
+
+  // ── Vote bar ──
+  const barY = verdictY + 120;
+  const barH = 20;
+  const barW = W - 160;
+
+  ctx.font = '600 30px Inter, sans-serif';
   ctx.fillStyle = '#e53e3e';
   ctx.textAlign = 'left';
-  ctx.fillText(`${sPct}% ${cd.sStatLbl.toUpperCase()}`, P, bY - 10);
+  ctx.fillText(`${sPct}% ${cd.sStatLbl.toUpperCase()}`, 80, barY - 14);
   ctx.fillStyle = '#3b82f6';
   ctx.textAlign = 'right';
-  ctx.fillText(`${gPct}% ${cd.gStatLbl.toUpperCase()}`, W - P, bY - 10);
+  ctx.fillText(`${gPct}% ${cd.gStatLbl.toUpperCase()}`, W - 80, barY - 14);
 
-  // Track
-  ctx.fillStyle = '#1e1e1e';
-  roundRect(ctx, P, bY, bW, bH, 4); ctx.fill();
-  // Fill
+  ctx.fillStyle = '#272727';
+  roundRect(ctx, 80, barY, barW, barH, 10); ctx.fill();
+
   if (sPct > 0) {
     ctx.fillStyle = '#e53e3e';
-    roundRect(ctx, P, bY, bW * sPct / 100, bH, 4); ctx.fill();
+    roundRect(ctx, 80, barY, barW * sPct / 100, barH, 10); ctx.fill();
   }
   if (gPct > 0) {
     ctx.fillStyle = '#3b82f6';
-    const gw = bW * gPct / 100;
-    roundRect(ctx, P + bW - gw, bY, gw, bH, 4); ctx.fill();
+    const gw = barW * gPct / 100;
+    roundRect(ctx, 80 + barW - gw, barY, gw, barH, 10); ctx.fill();
   }
 
-  // Total votes
-  ctx.font = '400 22px Inter, sans-serif';
-  ctx.fillStyle = '#3a3a3a';
+  ctx.font = '500 28px Inter, sans-serif';
+  ctx.fillStyle = '#555';
   ctx.textAlign = 'left';
-  ctx.fillText(`${total} vote${total !== 1 ? 's' : ''} cast`, P, bY + bH + 30);
+  ctx.fillText(`${total} vote${total !== 1 ? 's' : ''} so far`, 80, barY + barH + 38);
 
-  // ── 8. FOOTER ────────────────────────────────────────────
-  const fY = H - 52;
-
-  // thin line
-  ctx.strokeStyle = '#1e1e1e';
+  // ── CTA bottom ──
+  const ctaY = H - 120;
+  ctx.strokeStyle = '#272727';
   ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(P, fY - 22); ctx.lineTo(W - P, fY - 22); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(80, ctaY - 28); ctx.lineTo(W - 80, ctaY - 28); ctx.stroke();
 
-  ctx.font = '700 26px Inter, sans-serif';
-  ctx.fillStyle = isShiny ? '#ffd700' : hex;
+  ctx.font = `700 52px 'Bebas Neue', serif`;
+  ctx.fillStyle = '#efefef';
   ctx.textAlign = 'left';
-  ctx.fillText('cooked.gg', P, fY);
+  ctx.fillText('COOKED OR NOT? CAST YOUR VOTE', 80, ctaY + 14);
 
-  ctx.font = '400 24px Inter, sans-serif';
-  ctx.fillStyle = '#3a3a3a';
-  ctx.textAlign = 'right';
-  ctx.fillText('vote now →', W - P, fY);
+  ctx.font = '600 34px Inter, sans-serif';
+  ctx.fillStyle = '#3b82f6';
+  ctx.fillText('Vote at cooked.gg', 80, ctaY + 62);
 
   return canvas.toDataURL('image/png');
 }
@@ -2370,6 +2335,7 @@ function hexToRgb(hex) {
   const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return r ? { r: parseInt(r[1],16), g: parseInt(r[2],16), b: parseInt(r[3],16) } : null;
 }
+
 
 
 
