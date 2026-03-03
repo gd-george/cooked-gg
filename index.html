@@ -1976,9 +1976,20 @@ function dismissSuggestion() {
 //  WIKIPEDIA
 // ─────────────────────────────────────────
 async function searchWiki(q) {
-  const url = `https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(q)}&limit=7&namespace=0&format=json&origin=*`;
+  // CirrusSearch — fuzzy, typo-tolerant, much smarter than opensearch
+  const url = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srnamespace=0&srlimit=8&srprop=snippet&srinfo=&format=json&origin=*`;
   const d = await (await fetch(url)).json();
-  return d[1].map((t,i) => ({ title:t, desc:d[2][i] }));
+  const hits = d.query.search;
+  if (hits.length) {
+    return hits.map(h => ({
+      title: h.title,
+      desc:  h.snippet.replace(/<[^>]+>/g, '') // strip highlight tags
+    }));
+  }
+  // Fallback: if CirrusSearch returns nothing, try opensearch as last resort
+  const url2 = `https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(q)}&limit=8&namespace=0&format=json&origin=*`;
+  const d2 = await (await fetch(url2)).json();
+  return d2[1].map((t,i) => ({ title:t, desc:d2[2][i] }));
 }
 
 async function wikiDetails(title) {
@@ -1996,10 +2007,31 @@ async function wikiDetails(title) {
 // ─────────────────────────────────────────
 let sTimer;
 const inp = document.getElementById('searchInput');
+
+function extractWikiTitle(val) {
+  // matches en.wikipedia.org/wiki/PAGE_TITLE  (any protocol, with or without www)
+  const m = val.match(/wikipedia\.org\/wiki\/([^#?]+)/);
+  return m ? decodeURIComponent(m[1].replace(/_/g, ' ')) : null;
+}
+
 inp.addEventListener('input', function() {
   clearTimeout(sTimer);
   const q = this.value.trim();
   if (q.length < 2) { hideDD(); return; }
+  // If it looks like a Wikipedia URL show a "Go" hint in dropdown immediately
+  const wTitle = extractWikiTitle(q);
+  if (wTitle) {
+    const dd = document.getElementById('dropdown');
+    dd.style.display = 'block';
+    dd.innerHTML = `<div class="drop-item" onclick="openEntry('${esc(wTitle)}','all')">
+      <div class="drop-avatar">🔗</div>
+      <div class="drop-info">
+        <div class="drop-name">${escH(wTitle)}</div>
+        <div class="drop-desc">Open from Wikipedia link</div>
+      </div>
+    </div>`;
+    return;
+  }
   sTimer = setTimeout(() => runSearch(q), 320);
 });
 inp.addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); if(e.key==='Escape') hideDD(); });
@@ -2040,7 +2072,13 @@ async function fetchThumb(title) {
   return pg.thumbnail ? pg.thumbnail.source : null;
 }
 
-function doSearch() { const q = inp.value.trim(); if(q) runSearch(q); }
+function doSearch() {
+  const q = inp.value.trim();
+  if (!q) return;
+  const wTitle = extractWikiTitle(q);
+  if (wTitle) { hideDD(); openEntry(wTitle, 'all'); return; }
+  runSearch(q);
+}
 function hideDD() { document.getElementById('dropdown').style.display = 'none'; }
 function escH(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function esc(s) { return String(s).replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
