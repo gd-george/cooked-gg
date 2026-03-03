@@ -315,15 +315,7 @@ nav {
 .drop-name { font-weight: 600; font-size: 0.88rem; }
 .drop-desc { color: var(--muted); font-size: 0.75rem; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.drop-cat {
-  font-size: 0.65rem;
-  color: var(--muted);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 2px 7px;
-  flex-shrink: 0;
-}
+
 
 /* ── MAIN LAYOUT ── */
 .main { max-width: 960px; margin: 0 auto; padding: 40px 32px; }
@@ -1027,38 +1019,15 @@ nav {
 <!-- HOME -->
 <div class="page active" id="page-home">
   <div class="hero">
-    <span class="hero-tag">cooked.gg — name · place · animal · thing</span>
+    <span class="hero-tag">cooked.gg — anything. everything.</span>
     <h1>COOKED<br>OR NOT</h1>
     <p>You know the game. Now the internet decides what's cooked and what's goated.</p>
 
-    <div class="cat-row" id="catRow">
-      <button class="cat-tab active" data-cat="name"   onclick="pickCat('name',this)">🧑 Name</button>
-      <button class="cat-tab"        data-cat="place"  onclick="pickCat('place',this)">🌍 Place</button>
-      <button class="cat-tab"        data-cat="animal" onclick="pickCat('animal',this)">🐾 Animal</button>
-      <button class="cat-tab thing-parent" id="thingParentBtn" onclick="toggleThing(this)">⚡ Thing ▾</button>
-      <button class="cat-tab thing-parent" id="entParentBtn"   onclick="toggleEnt(this)">🎬 Ent ▾</button>
-    </div>
-    <div class="subcat-row" id="subcatRow" style="display:none">
-      <button class="subcat-tab active" data-cat="food"      onclick="pickSubcat('food',this)">🍽️ Food</button>
-      <button class="subcat-tab"        data-cat="invention" onclick="pickSubcat('invention',this)">💡 Invention</button>
-      <button class="subcat-tab"        data-cat="concept"   onclick="pickSubcat('concept',this)">🧠 Concept</button>
-      <button class="subcat-tab"        data-cat="brand"     onclick="pickSubcat('brand',this)">🏢 Brand</button>
-    </div>
-    <div class="subcat-row" id="entSubcatRow" style="display:none">
-      <button class="subcat-tab active" data-cat="movie" onclick="pickEntSubcat('movie',this)">🎬 Movie</button>
-      <button class="subcat-tab"        data-cat="show"  onclick="pickEntSubcat('show',this)">📺 Show</button>
-      <button class="subcat-tab"        data-cat="song"  onclick="pickEntSubcat('song',this)">🎵 Song</button>
-      <button class="subcat-tab"        data-cat="game"  onclick="pickEntSubcat('game',this)">🎮 Game</button>
-    </div>
-    <div class="cat-suggestion" id="catSuggestion" style="display:none">
-      <span id="catSugMsg"></span>
-      <button class="sug-switch" id="catSugBtn" onclick="acceptSuggestion()">Switch</button>
-      <button class="sug-ignore" onclick="dismissSuggestion()">Ignore</button>
-    </div>
+
 
     <div class="search-wrap">
       <div class="search-row">
-        <input id="searchInput" class="search-input" type="text" placeholder="Search a famous name…" autocomplete="off">
+        <input id="searchInput" class="search-input" type="text" placeholder="Search anything — people, places, movies, food…" autocomplete="off">
         <button class="search-go" onclick="doSearch()">Search</button>
       </div>
       <div class="dropdown" id="dropdown"></div>
@@ -1078,7 +1047,7 @@ nav {
 <div class="page" id="page-boards">
   <div class="main">
     <div class="section-head"><h2>Leaderboards</h2></div>
-    <div class="filter-row" id="lbFilters">
+    <div class="filter-row" id="lbFilters" style="display:none">
       <button class="filter-tab active" onclick="setLbCat('all',this)">All</button>
       <button class="filter-tab" onclick="setLbCat('name',this)">🧑 Name</button>
       <button class="filter-tab" onclick="setLbCat('place',this)">🌍 Place</button>
@@ -1109,19 +1078,7 @@ nav {
 <div class="page" id="page-titles">
   <div class="main">
     <div class="section-head"><h2>Title System</h2><span class="section-sub">How titles are earned</span></div>
-    <div class="titles-filter" id="titlesFilter">
-      <button class="filter-tab active" onclick="setTitlesCat('name',this)">🧑 Name</button>
-      <button class="filter-tab" onclick="setTitlesCat('place',this)">🌍 Place</button>
-      <button class="filter-tab" onclick="setTitlesCat('animal',this)">🐾 Animal</button>
-      <button class="filter-tab" onclick="setTitlesCat('food',this)">🍽️ Food</button>
-      <button class="filter-tab" onclick="setTitlesCat('invention',this)">💡 Invention</button>
-      <button class="filter-tab" onclick="setTitlesCat('concept',this)">🧠 Concept</button>
-      <button class="filter-tab" onclick="setTitlesCat('brand',this)">🏢 Brand</button>
-      <button class="filter-tab" onclick="setTitlesCat('movie',this)">🎬 Movie</button>
-      <button class="filter-tab" onclick="setTitlesCat('show',this)">📺 Show</button>
-      <button class="filter-tab" onclick="setTitlesCat('song',this)">🎵 Song</button>
-      <button class="filter-tab" onclick="setTitlesCat('game',this)">🎮 Game</button>
-    </div>
+
     <div class="titles-grid" id="titlesGrid"></div>
   </div>
 </div>
@@ -1281,6 +1238,39 @@ nav {
 //  CATEGORIES
 // ─────────────────────────────────────────
 const CATS = {
+  all: {
+    label:'', icon:'🔥', hint:'Search anything — people, places, movies, food…',
+    sLabel:'Cooked', gLabel:'Goated',
+    sIcon:'💀', gIcon:'🐐',
+    sStatLbl:'Cooked', gStatLbl:'Goated',
+    defaultAv:'🔥', parent:null,
+    titles:[
+      {key:'GOAT',      icon:'🐐', name:'The GOAT',         cls:'badge-gold',  color:'#d4a017',
+       side:'giga',r10:null,r50:null,r100:0.75,
+       desc:'Undisputed. Unmatched. The internet has spoken.',req:'100+ votes · 75%+ goated'},
+      {key:'LEGENDARY', icon:'👑', name:'Legendary',         cls:'badge-blue',  color:'#3b82f6',
+       side:'giga',r10:null,r50:0.70,r100:0.70,
+       desc:'Elite tier. The people recognise greatness.',req:'50+ votes · 70%+ goated'},
+      {key:'SOLID',     icon:'✅', name:'Solid',              cls:'badge-blue',  color:'#60a5fa',
+       side:'giga',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Consistently good. Earns respect.',req:'10+ votes · 60%+ goated'},
+      {key:'DIVISIVE',  icon:'🌀', name:'Divisive',           cls:'badge-purple',color:'#a855f7',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'The internet cannot agree. Chaos reigns.',req:'100+ votes · 45–55% split'},
+      {key:'MID',       icon:'😐', name:'Mid',                cls:'badge-grey',  color:'#888',
+       side:'mid', r10:null,r50:null,r100:null,
+       desc:'Exists. That is all.',req:'10+ votes · even split'},
+      {key:'FALLING',   icon:'📉', name:'Falling Off',        cls:'badge-orange',color:'#f97316',
+       side:'smooth',r10:0.65,r50:0.60,r100:0.58,
+       desc:'Had its moment. The moment is over.',req:'10+ votes · 60%+ cooked'},
+      {key:'COOKED',    icon:'💀', name:'Cooked',             cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:0.70,r100:0.70,
+       desc:'Fully cooked. No recovery.',req:'50+ votes · 70%+ cooked'},
+      {key:'DONE',      icon:'🪦', name:'Done fr',            cls:'badge-red',   color:'#e53e3e',
+       side:'smooth',r10:null,r50:null,r100:0.75,
+       desc:'The internet has buried it. Rest.',req:'100+ votes · 75%+ cooked'},
+    ]
+  },
   name: {
     label:'Name', icon:'🧑', hint:'Search a famous name…',
     sLabel:'Smooth Brain', gLabel:'Giga Brain',
@@ -1761,7 +1751,7 @@ async function loadMyVote(entryId) {
 //  TITLE LOGIC
 // ─────────────────────────────────────────
 function getTitle(entry) {
-  const titles = CATS[entry.cat].titles;
+  const titles = (CATS[entry.cat] || CATS['all']).titles;
   const total = entry.smooth + entry.giga;
 
   if (total < 10) return { key:'?', icon:'🔭', name:'Too Early to Tell', cls:'badge-grey', color:'#555' };
@@ -1806,9 +1796,18 @@ function badge(title) {
 // ─────────────────────────────────────────
 //  CAT STATE
 // ─────────────────────────────────────────
-let curCat = 'name';
+let curCat = 'all';
+// Category UI removed — stub functions to avoid errors
+function pickCat(){}
+function toggleThing(){}
+function toggleEnt(){}
+function pickSubcat(){}
+function pickEntSubcat(){}
+function showSuggestion(){}
+function acceptSuggestion(){}
+function dismissSuggestion(){}
 let lbCat = 'all';
-let titlesCat = 'name';
+let titlesCat = 'all';
 let thingOpen = false;
 let entOpen   = false;
 let suggestedCat = null;
@@ -1936,7 +1935,7 @@ function showSuggestion(detectedCat) {
 function acceptSuggestion() {
   if (!suggestedCat) return;
   const cat = suggestedCat;
-  const cd = CATS[cat];
+  const cd = CATS[cat] || CATS['all'];
   if (THING_SUBCATS.includes(cat)) {
     thingOpen = true;
     document.getElementById('subcatRow').style.display = 'flex';
@@ -2010,27 +2009,35 @@ async function runSearch(q) {
   const dd = document.getElementById('dropdown');
   dd.style.display = 'block';
   dd.innerHTML = '<div style="padding:18px;text-align:center"><div class="spinner"></div></div>';
-  dismissSuggestion();
   try {
     const results = await searchWiki(q);
-    const cd = CATS[curCat];
     if (!results.length) { dd.innerHTML = '<div style="padding:14px;color:#555;font-size:0.8rem;text-align:center">No results found</div>'; return; }
-    dd.innerHTML = results.map(r => `
-      <div class="drop-item" onclick="openEntry('${esc(r.title)}','${curCat}')">
-        <div class="drop-avatar">${cd.defaultAv}</div>
+
+    // Render immediately with placeholder avatars
+    dd.innerHTML = results.map((r, i) => `
+      <div class="drop-item" id="ddi-${i}" onclick="openEntry('${esc(r.title)}','all')">
+        <div class="drop-avatar" id="dda-${i}">🔥</div>
         <div class="drop-info">
           <div class="drop-name">${escH(r.title)}</div>
           <div class="drop-desc">${escH(r.desc)}</div>
         </div>
-        <span class="drop-cat">${cd.icon} ${cd.label}</span>
       </div>`).join('');
-    // Background category check on first result — non-blocking
-    if (results[0]) {
-      detectCat(results[0].title).then(detected => {
-        if (detected && detected !== curCat) showSuggestion(detected);
-      }).catch(()=>{});
-    }
+
+    // Fetch thumbnails in parallel — update each avatar as they arrive
+    results.forEach((r, i) => {
+      fetchThumb(r.title).then(src => {
+        const av = document.getElementById('dda-' + i);
+        if (av && src) av.innerHTML = `<img src="${src}" alt="">`;
+      }).catch(() => {});
+    });
   } catch { dd.innerHTML = '<div style="padding:14px;color:#555;font-size:0.8rem;text-align:center">Search error</div>'; }
+}
+
+async function fetchThumb(title) {
+  const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages&piprop=thumbnail&pithumbsize=80&format=json&origin=*`;
+  const d = await (await fetch(url)).json();
+  const pg = Object.values(d.query.pages)[0];
+  return pg.thumbnail ? pg.thumbnail.source : null;
 }
 
 function doSearch() { const q = inp.value.trim(); if(q) runSearch(q); }
@@ -2059,7 +2066,7 @@ async function openEntry(title, cat) {
   if (myVote !== undefined) store.votes[key] = myVote;
 
   const e = store.entries[key];
-  const cd = CATS[cat];
+  const cd = CATS[cat] || CATS['all'];
 
   // populate modal
   document.getElementById('mCatLabel').textContent = cd.icon + ' ' + cd.label;
@@ -2131,7 +2138,7 @@ function refreshStats(e) {
   } else {
     bs.style.display = 'block'; nv.style.display = 'none';
     const gP = Math.round((e.giga/total)*100);
-    const cd = CATS[e.cat];
+    const cd = CATS[e.cat] || CATS['all'];
     document.getElementById('barL').textContent = `${100-gP}% ${cd.sStatLbl}`;
     document.getElementById('barR').textContent = `${gP}% ${cd.gStatLbl}`;
     document.getElementById('barFill').style.width = gP + '%';
@@ -2167,7 +2174,7 @@ async function drawShareCard(e) {
   canvas.width = W; canvas.height = H;
 
   const title = getTitle(e);
-  const cd = CATS[e.cat];
+  const cd = CATS[e.cat] || CATS['all'];
   const total = e.smooth + e.giga;
   const gPct = total > 0 ? Math.round((e.giga / total) * 100) : 50;
   const sPct = 100 - gPct;
@@ -2380,7 +2387,7 @@ async function doShare() {
 
   const e = store.entries[curKey];
   const t = getTitle(e);
-  const cd = CATS[e.cat];
+  const cd = CATS[e.cat] || CATS['all'];
   const total = e.smooth + e.giga;
 
   const shareText = `Is ${e.name} cooked or goated? ${t.icon} Currently: ${t.name} (${total} votes)
@@ -2459,7 +2466,7 @@ async function castVote(type) {
 
   // Optimistic UI update — instant feedback
   const e = store.entries[curKey];
-  const cd = CATS[e.cat];
+  const cd = CATS[e.cat] || CATS['all'];
   const prev = store.votes[curKey];
   if (prev === type) {
     store.votes[curKey] = null;
@@ -2552,7 +2559,7 @@ async function renderBoards() {
   const rowRankCls = i => i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
   const row = (p,i,type) => {
     const t = getTitle(p);
-    const cd = CATS[p.cat];
+    const cd = CATS[p.cat] || CATS['all'];
     const count = type==='smooth' ? p.smooth : p.giga;
     const av = p.image ? `<img src="${p.image}" alt="">` : cd.defaultAv;
     return `<div class="lb-row ${rowRankCls(i)}" onclick="openEntry('${esc(p.name)}','${p.cat}')">
@@ -2571,10 +2578,10 @@ async function renderBoards() {
 
   // Update col headers
   if (lbCat === 'all') {
-    document.getElementById('lbSIcon').textContent = '🧠💨';
-    document.getElementById('lbSTitle').textContent = 'Smooth Brain';
-    document.getElementById('lbGIcon').textContent = '⚡🧠';
-    document.getElementById('lbGTitle').textContent = 'Giga Brain';
+    document.getElementById('lbSIcon').textContent = '💀';
+    document.getElementById('lbSTitle').textContent = 'Most Cooked';
+    document.getElementById('lbGIcon').textContent = '🐐';
+    document.getElementById('lbGTitle').textContent = 'Most Goated';
   } else if (CATS[lbCat]) {
     const cd = CATS[lbCat];
     document.getElementById('lbSIcon').textContent = cd.sIcon;
@@ -2600,7 +2607,7 @@ async function renderBuzz() {
   }
   g.innerHTML = entries.map(p => {
     const t = getTitle(p);
-    const cd = CATS[p.cat];
+    const cd = CATS[p.cat] || CATS['all'];
     const total = p.smooth + p.giga;
     const gP = total > 0 ? Math.round((p.giga/total)*100) : 50;
     const av = p.image ? `<img src="${p.image}" alt="">` : cd.defaultAv;
@@ -2628,7 +2635,7 @@ function setTitlesCat(cat, btn) {
 }
 
 function renderTitles() {
-  const cd = CATS[titlesCat];
+  const cd = CATS['all'];
   document.getElementById('titlesGrid').innerHTML = cd.titles.map(t => `
     <div class="title-card">
       <div class="title-card-icon">${t.icon}</div>
