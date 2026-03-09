@@ -2148,17 +2148,58 @@ async function fetchThumb(title) {
 // ─────────────────────────────────────────
 //  TAGS / WORD CLOUD
 // ─────────────────────────────────────────
-let tagCache = {};      // key → [{tag, count}]
-let myTags   = {};      // key → Set of tags this device submitted
+let tagCache = {};   // key → [{tag, count}]
+let myTags   = {};   // key → Set of tags this device already used (tap or submit)
 
-const BAD_WORDS = new Set(['fuck','shit','cunt','nigga','nigger','faggot','retard','bitch','asshole','bastard']);
+const BAD_WORDS = new Set(['fuck','shit','cunt','nigga','nigger','faggot','retard','bitch','asshole','bastard','dick','cock','pussy']);
 
+// ── Spam guards (localStorage-backed) ──────────────────────
+const TAG_STORE_KEY  = 'cgg_tag_log';   // { entryKey: true } — submitted to this entry
+const TAG_RATE_KEY   = 'cgg_tag_rate';  // { timestamps: [...] } — global rate log
+const RATE_LIMIT     = 5;               // max new tags per hour across all entries
+const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+function tagGetSubmitted() {
+  try { return JSON.parse(localStorage.getItem(TAG_STORE_KEY) || '{}'); } catch { return {}; }
+}
+function tagMarkSubmitted(key) {
+  const d = tagGetSubmitted(); d[key] = true;
+  try { localStorage.setItem(TAG_STORE_KEY, JSON.stringify(d)); } catch {}
+}
+function tagAlreadySubmitted(key) { return !!tagGetSubmitted()[key]; }
+
+function tagRateOk() {
+  // returns true if under the rate limit, AND records the new timestamp
+  try {
+    const raw = JSON.parse(localStorage.getItem(TAG_RATE_KEY) || '{"ts":[]}');
+    const now  = Date.now();
+    const recent = (raw.ts || []).filter(t => now - t < RATE_WINDOW_MS);
+    if (recent.length >= RATE_LIMIT) return false;
+    recent.push(now);
+    localStorage.setItem(TAG_RATE_KEY, JSON.stringify({ts: recent}));
+    return true;
+  } catch { return true; } // if storage fails, allow it
+}
+
+// Also load tapped tags from localStorage so they survive page refresh
+const TAP_STORE_KEY = 'cgg_tag_taps'; // { "entryKey::tag": true }
+function tapGetAll() {
+  try { return JSON.parse(localStorage.getItem(TAP_STORE_KEY) || '{}'); } catch { return {}; }
+}
+function tapMark(key, tag) {
+  const d = tapGetAll(); d[key + '::' + tag] = true;
+  try { localStorage.setItem(TAP_STORE_KEY, JSON.stringify(d)); } catch {}
+}
+function tapAlready(key, tag) { return !!tapGetAll()[key + '::' + tag]; }
+
+// ── Core functions ──────────────────────────────────────────
 async function loadTags(key) {
   try {
     const rows = await sbFetch(`/rest/v1/entry_tags?entry_id=eq.${encodeURIComponent(key)}&order=count.desc&limit=5`);
     tagCache[key] = rows || [];
   } catch { tagCache[key] = []; }
   renderTags(key);
+  updateTagInputState(key);
 }
 
 function renderTags(key) {
@@ -2170,12 +2211,10 @@ function renderTags(key) {
     return;
   }
   const max = tags[0].count;
-  const mySet = myTags[key] || new Set();
   cloud.innerHTML = tags.map(t => {
-    // font size scales between 0.78rem (min) and 1.3rem (max) based on relative count
     const ratio  = max > 1 ? (t.count / max) : 1;
     const fsize  = (0.78 + ratio * 0.52).toFixed(2);
-    const tapped = mySet.has(t.tag) ? 'tapped' : '';
+    const tapped = tapAlready(key, t.tag) ? 'tapped' : '';
     return `<button class="tag-chip ${tapped}" style="font-size:${fsize}rem"
               onclick="tapTag('${esc(t.tag)}')">
               ${escH(t.tag)}<span class="tag-chip-count">${t.count}</span>
@@ -2183,12 +2222,22 @@ function renderTags(key) {
   }).join('');
 }
 
+function updateTagInputState(key) {
+  // Hide input row entirely if device already submitted a tag for this entry
+  const row = document.querySelector('.tags-input-row');
+  if (!row) return;
+  if (tagAlreadySubmitted(key)) {
+    row.style.display = 'none';
+  } else {
+    row.style.display = 'flex';
+  }
+}
+
 async function tapTag(tag) {
   if (!curKey) return;
-  const mySet = myTags[curKey] = myTags[curKey] || new Set();
-  if (mySet.has(tag)) return; // already tapped
-  mySet.add(tag);
-  // Optimistic update
+  if (tapAlready(curKey, tag)) return; // already tapped — no double counting
+  tapMark(curKey, tag);
+  // Optimistic
   const entry = tagCache[curKey]?.find(t => t.tag === tag);
   if (entry) { entry.count++; renderTags(curKey); }
   try {
@@ -2196,23 +2245,43 @@ async function tapTag(tag) {
       method: 'POST',
       body: JSON.stringify({ p_entry_id: curKey, p_tag: tag })
     });
-    await loadTags(curKey); // refresh with real counts
-  } catch { mySet.delete(tag); renderTags(curKey); }
+    await loadTags(curKey);
+  } catch {
+    // rollback optimistic
+    if (entry) entry.count--;
+    renderTags(curKey);
+  }
 }
 
 async function submitTag() {
   if (!curKey) return;
-  const inp2  = document.getElementById('tagInput');
-  const btn   = document.getElementById('tagSubmit');
-  let   tag   = inp2.value.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  const inp2 = document.getElementById('tagInput');
+  const btn  = document.getElementById('tagSubmit');
+  let tag    = inp2.value.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
   if (!tag || tag.length < 2) { inp2.focus(); return; }
   if (tag.length > 10) tag = tag.slice(0, 10);
-  if (BAD_WORDS.has(tag)) { inp2.value = ''; inp2.placeholder = 'keep it clean…'; return; }
-  const mySet = myTags[curKey] = myTags[curKey] || new Set();
-  if (mySet.has(tag)) { inp2.value = ''; return; }
+
+  // Blocklist
+  if (BAD_WORDS.has(tag)) {
+    inp2.value = ''; inp2.placeholder = 'keep it clean 🙂'; return;
+  }
+  // Already submitted to this entry
+  if (tagAlreadySubmitted(curKey)) {
+    inp2.value = ''; updateTagInputState(curKey); return;
+  }
+  // Global rate limit
+  if (!tagRateOk()) {
+    inp2.value = '';
+    inp2.placeholder = 'too many tags — try later';
+    setTimeout(() => { inp2.placeholder = 'one word…'; }, 3000);
+    return;
+  }
+
   btn.disabled = true;
-  mySet.add(tag);
+  tagMarkSubmitted(curKey);  // mark before request so double-taps can't race
+  tapMark(curKey, tag);      // also count as tapped
   inp2.value = '';
+
   // Optimistic
   const existing = tagCache[curKey]?.find(t => t.tag === tag);
   if (existing) existing.count++;
@@ -2220,22 +2289,29 @@ async function submitTag() {
   tagCache[curKey].sort((a,b) => b.count - a.count);
   tagCache[curKey] = tagCache[curKey].slice(0,5);
   renderTags(curKey);
+  updateTagInputState(curKey);
+
   try {
     await sbFetch('/rest/v1/rpc/upsert_tag', {
       method: 'POST',
       body: JSON.stringify({ p_entry_id: curKey, p_tag: tag })
     });
     await loadTags(curKey);
-  } catch { mySet.delete(tag); renderTags(curKey); }
+  } catch {}
   btn.disabled = false;
 }
 
-// enforce single word on input
+// Enforce no spaces on input, Enter to submit
 document.addEventListener('DOMContentLoaded', () => {
   const ti = document.getElementById('tagInput');
   if (ti) {
-    ti.addEventListener('keydown', e => { if(e.key===' '||e.key==='Enter') { e.preventDefault(); if(e.key==='Enter') submitTag(); } });
-    ti.addEventListener('input', () => { ti.value = ti.value.replace(/[^a-zA-Z0-9]/g,'').toLowerCase(); });
+    ti.addEventListener('keydown', e => {
+      if (e.key === ' ') { e.preventDefault(); }
+      if (e.key === 'Enter') { e.preventDefault(); submitTag(); }
+    });
+    ti.addEventListener('input', () => {
+      ti.value = ti.value.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    });
   }
 });
 
