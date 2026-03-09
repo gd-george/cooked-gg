@@ -740,6 +740,63 @@ nav {
 .verdict-value { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 2px; }
 .verdict-hint { font-size: 0.68rem; color: var(--muted); margin-top: 4px; }
 
+/* ── TAGS ── */
+.tags-section {
+  margin: 0 24px 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.tags-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.tags-label {
+  font-size: 0.62rem; color: var(--muted);
+  letter-spacing: 2px; text-transform: uppercase;
+}
+.tags-cloud {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  min-height: 36px; margin-bottom: 12px;
+}
+.tag-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 12px; border-radius: 20px;
+  border: 1px solid var(--border); background: var(--card);
+  cursor: pointer; transition: all 0.15s;
+  font-weight: 600; color: var(--text);
+  line-height: 1;
+}
+.tag-chip:hover { border-color: var(--border-light); background: #1f1f1f; }
+.tag-chip.tapped { border-color: var(--blue); background: rgba(59,130,246,0.1); color: var(--blue); }
+.tag-chip-count {
+  font-size: 0.65rem; color: var(--muted);
+  font-weight: 400;
+}
+.tag-chip.tapped .tag-chip-count { color: var(--blue); }
+.tags-input-row {
+  display: flex; gap: 8px;
+}
+.tag-input {
+  flex: 1; padding: 8px 12px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text);
+  font-size: 0.82rem; font-family: 'Inter', sans-serif;
+  text-transform: lowercase;
+  transition: border-color 0.15s;
+}
+.tag-input:focus { outline: none; border-color: var(--border-light); }
+.tag-input::placeholder { color: var(--muted); }
+.tag-submit {
+  padding: 8px 14px; border-radius: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); font-size: 0.82rem; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+  font-family: 'Inter', sans-serif;
+}
+.tag-submit:hover { border-color: var(--border-light); }
+.tag-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+.tags-empty { font-size: 0.78rem; color: var(--muted); }
+
 /* share */
 .share-section {
   margin: 0 24px 24px;
@@ -1181,6 +1238,20 @@ nav {
       <div class="verdict-label">Current Verdict</div>
       <div class="verdict-value" id="verdictVal">—</div>
       <div class="verdict-hint" id="verdictHint"></div>
+    </div>
+
+    <!-- TAGS / WORD CLOUD -->
+    <div class="tags-section" id="tagsSection">
+      <div class="tags-header">
+        <span class="tags-label">Vibe Check</span>
+      </div>
+      <div class="tags-cloud" id="tagsCloud">
+        <span class="tags-empty">No vibes yet — be first</span>
+      </div>
+      <div class="tags-input-row">
+        <input class="tag-input" id="tagInput" maxlength="10" placeholder="one word…" autocomplete="off" spellcheck="false">
+        <button class="tag-submit" id="tagSubmit" onclick="submitTag()">+ Add</button>
+      </div>
     </div>
 
     <div class="share-section">
@@ -2074,6 +2145,100 @@ async function fetchThumb(title) {
   return pg.thumbnail ? pg.thumbnail.source : null;
 }
 
+// ─────────────────────────────────────────
+//  TAGS / WORD CLOUD
+// ─────────────────────────────────────────
+let tagCache = {};      // key → [{tag, count}]
+let myTags   = {};      // key → Set of tags this device submitted
+
+const BAD_WORDS = new Set(['fuck','shit','cunt','nigga','nigger','faggot','retard','bitch','asshole','bastard']);
+
+async function loadTags(key) {
+  try {
+    const rows = await sbFetch(`/rest/v1/entry_tags?entry_id=eq.${encodeURIComponent(key)}&order=count.desc&limit=5`);
+    tagCache[key] = rows || [];
+  } catch { tagCache[key] = []; }
+  renderTags(key);
+}
+
+function renderTags(key) {
+  const cloud = document.getElementById('tagsCloud');
+  if (!cloud) return;
+  const tags = tagCache[key] || [];
+  if (!tags.length) {
+    cloud.innerHTML = '<span class="tags-empty">No vibes yet — be first</span>';
+    return;
+  }
+  const max = tags[0].count;
+  const mySet = myTags[key] || new Set();
+  cloud.innerHTML = tags.map(t => {
+    // font size scales between 0.78rem (min) and 1.3rem (max) based on relative count
+    const ratio  = max > 1 ? (t.count / max) : 1;
+    const fsize  = (0.78 + ratio * 0.52).toFixed(2);
+    const tapped = mySet.has(t.tag) ? 'tapped' : '';
+    return `<button class="tag-chip ${tapped}" style="font-size:${fsize}rem"
+              onclick="tapTag('${esc(t.tag)}')">
+              ${escH(t.tag)}<span class="tag-chip-count">${t.count}</span>
+            </button>`;
+  }).join('');
+}
+
+async function tapTag(tag) {
+  if (!curKey) return;
+  const mySet = myTags[curKey] = myTags[curKey] || new Set();
+  if (mySet.has(tag)) return; // already tapped
+  mySet.add(tag);
+  // Optimistic update
+  const entry = tagCache[curKey]?.find(t => t.tag === tag);
+  if (entry) { entry.count++; renderTags(curKey); }
+  try {
+    await sbFetch('/rest/v1/rpc/upsert_tag', {
+      method: 'POST',
+      body: JSON.stringify({ p_entry_id: curKey, p_tag: tag })
+    });
+    await loadTags(curKey); // refresh with real counts
+  } catch { mySet.delete(tag); renderTags(curKey); }
+}
+
+async function submitTag() {
+  if (!curKey) return;
+  const inp2  = document.getElementById('tagInput');
+  const btn   = document.getElementById('tagSubmit');
+  let   tag   = inp2.value.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (!tag || tag.length < 2) { inp2.focus(); return; }
+  if (tag.length > 10) tag = tag.slice(0, 10);
+  if (BAD_WORDS.has(tag)) { inp2.value = ''; inp2.placeholder = 'keep it clean…'; return; }
+  const mySet = myTags[curKey] = myTags[curKey] || new Set();
+  if (mySet.has(tag)) { inp2.value = ''; return; }
+  btn.disabled = true;
+  mySet.add(tag);
+  inp2.value = '';
+  // Optimistic
+  const existing = tagCache[curKey]?.find(t => t.tag === tag);
+  if (existing) existing.count++;
+  else { tagCache[curKey] = tagCache[curKey] || []; tagCache[curKey].unshift({tag, count:1}); }
+  tagCache[curKey].sort((a,b) => b.count - a.count);
+  tagCache[curKey] = tagCache[curKey].slice(0,5);
+  renderTags(curKey);
+  try {
+    await sbFetch('/rest/v1/rpc/upsert_tag', {
+      method: 'POST',
+      body: JSON.stringify({ p_entry_id: curKey, p_tag: tag })
+    });
+    await loadTags(curKey);
+  } catch { mySet.delete(tag); renderTags(curKey); }
+  btn.disabled = false;
+}
+
+// enforce single word on input
+document.addEventListener('DOMContentLoaded', () => {
+  const ti = document.getElementById('tagInput');
+  if (ti) {
+    ti.addEventListener('keydown', e => { if(e.key===' '||e.key==='Enter') { e.preventDefault(); if(e.key==='Enter') submitTag(); } });
+    ti.addEventListener('input', () => { ti.value = ti.value.replace(/[^a-zA-Z0-9]/g,'').toLowerCase(); });
+  }
+});
+
 function doSearch() {
   const q = inp.value.trim();
   if (!q) return;
@@ -2122,6 +2287,8 @@ async function openEntry(title, cat) {
 
   refreshStats(e);
   refreshShare(e);
+  tagCache[key] = []; renderTags(key); // clear while loading
+  loadTags(key);
   document.getElementById('modalOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
   // Pre-warm Turnstile so token is ready when user votes
