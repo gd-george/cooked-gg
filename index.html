@@ -740,6 +740,88 @@ nav {
 .verdict-value { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 2px; }
 .verdict-hint { font-size: 0.68rem; color: var(--muted); margin-top: 4px; }
 
+/* ── GRAVEYARD PAGE ── */
+.revival-lb { display:flex;flex-direction:column;gap:8px;margin-bottom:8px; }
+.revival-row {
+  display:flex;align-items:center;gap:12px;
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:12px 16px;cursor:pointer;transition:border-color 0.15s;
+}
+.revival-row:hover { border-color:#333; }
+.revival-rank {
+  font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--muted);
+  width:24px;text-align:center;flex-shrink:0;
+}
+.revival-rank.r1 { color:var(--gold); }
+.revival-rank.r2 { color:#aaa; }
+.revival-rank.r3 { color:#c87533; }
+.revival-name { flex:1;font-size:0.88rem;font-weight:600; }
+.revival-votes {
+  font-size:0.75rem;color:var(--green);font-weight:600;
+  background:rgba(34,197,94,0.1);padding:3px 10px;border-radius:12px;
+}
+.tomb-card {
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:14px 16px;margin-bottom:8px;
+  display:flex;align-items:center;gap:12px;cursor:pointer;
+  transition:border-color 0.15s;
+}
+.tomb-card:hover { border-color:#333; }
+.tomb-card-icon { font-size:1.4rem;filter:grayscale(1);flex-shrink:0; }
+.tomb-card-info { flex:1;min-width:0; }
+.tomb-card-name {
+  font-size:0.88rem;font-weight:600;color:var(--muted);
+  text-decoration:line-through;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.tomb-card-meta { font-size:0.7rem;color:var(--muted);margin-top:2px; }
+.tomb-card-votes {
+  font-size:0.72rem;color:var(--green);font-weight:600;text-align:right;flex-shrink:0;
+}
+
+/* ── TOMBSTONE ── */
+.tombstone-overlay {
+  position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.tombstone-overlay.open { display:flex; }
+.tombstone-box {
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  max-width:420px;width:100%;padding:36px 28px;text-align:center;
+  position:relative;
+}
+.tomb-icon { font-size:3rem;margin-bottom:12px;filter:grayscale(1); }
+.tomb-name {
+  font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:2px;
+  color:var(--muted);margin-bottom:4px;text-decoration:line-through;
+}
+.tomb-date { font-size:0.7rem;color:var(--muted);letter-spacing:2px;margin-bottom:20px; }
+.tomb-divider { height:1px;background:var(--border);margin:20px 0; }
+.tomb-reason {
+  font-size:0.78rem;color:var(--muted);line-height:1.6;margin-bottom:20px;
+}
+.tomb-td-count {
+  font-size:0.72rem;color:var(--muted);margin-bottom:20px;
+}
+.tomb-td-count span { color:var(--red);font-weight:600; }
+.reinstate-btn {
+  width:100%;padding:14px;border-radius:10px;
+  border:1px solid var(--border);background:var(--card);
+  color:var(--text);font-size:0.88rem;font-weight:600;
+  cursor:pointer;transition:all 0.2s;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.reinstate-btn:hover { border-color:#555;background:#1a1a1a; }
+.reinstate-btn.voted { border-color:var(--green);color:var(--green);background:rgba(34,197,94,0.08); }
+.reinstate-count {
+  font-family:'Bebas Neue',sans-serif;font-size:1.1rem;
+  color:var(--muted);margin-top:10px;
+}
+.reinstate-count span { color:var(--text); }
+.tomb-close {
+  position:absolute;top:14px;right:14px;
+  background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;
+}
+
 /* ── TAGS ── */
 .tags-section {
   margin: 0 24px 20px;
@@ -1068,6 +1150,7 @@ nav {
     <button class="nav-tab active" onclick="showPage('home',this)">Vote</button>
     <button class="nav-tab" onclick="showPage('boards',this)">Boards</button>
     <button class="nav-tab" onclick="showPage('titles',this)">Titles</button>
+    <button class="nav-tab" onclick="showPage('graveyard',this)">🪦 Graveyard</button>
     <button class="nav-tab" onclick="showPage('feedback',this)">Feedback</button>
   </div>
   <button class="donate-pill" onclick="openDonate()">☕ Support</button>
@@ -1127,6 +1210,33 @@ nav {
         <div class="lb-head"><span id="lbGIcon">⚡🧠</span><span class="lb-head-label blue" id="lbGTitle">Giga Brain</span></div>
         <div id="lbGiga"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- GRAVEYARD -->
+<div class="page" id="page-graveyard">
+  <div class="main">
+    <div class="section-head"><h2>🪦 Graveyard</h2></div>
+    <p style="font-size:0.8rem;color:var(--muted);margin-bottom:24px;line-height:1.6">
+      Entries removed by the cooked.gg team. The internet has spoken — or has it?
+      Vote to bring them back.
+    </p>
+
+    <!-- Revival Leaderboard -->
+    <div class="section-head" style="margin-top:0;margin-bottom:12px">
+      <h3 style="font-size:0.9rem;font-weight:600;color:var(--text)">⚡ Revival Leaderboard</h3>
+    </div>
+    <div id="gravRevivalLb" style="margin-bottom:32px">
+      <div style="color:var(--muted);font-size:0.82rem;padding:20px 0">Loading…</div>
+    </div>
+
+    <!-- All tombstones -->
+    <div class="section-head" style="margin-bottom:12px">
+      <h3 style="font-size:0.9rem;font-weight:600;color:var(--text)">All Removed Entries</h3>
+    </div>
+    <div id="gravAllTombs">
+      <div style="color:var(--muted);font-size:0.82rem;padding:20px 0">Loading…</div>
     </div>
   </div>
 </div>
@@ -1268,6 +1378,29 @@ nav {
   </div>
 </div>
 
+<!-- TOMBSTONE OVERLAY -->
+<div class="tombstone-overlay" id="tombOverlay" onclick="closeTombOut(event)">
+  <div class="tombstone-box">
+    <button class="tomb-close" onclick="closeTomb()">✕</button>
+    <div class="tomb-icon">🪦</div>
+    <div class="tomb-name" id="tombName">—</div>
+    <div class="tomb-date" id="tombDate">REMOVED</div>
+    <div class="tomb-td-count">
+      <span id="tombTdCount">0</span> people requested this removal
+    </div>
+    <div class="tomb-divider"></div>
+    <div class="tomb-reason" id="tombReason">
+      This entry was reviewed and removed by the cooked.gg team.<br>
+      Think it should come back?
+    </div>
+    <button class="reinstate-btn" id="reinstateBtn" onclick="doReinstate()">
+      <span id="reinstateEmoji">👀</span>
+      <span id="reinstateLabel">Nah this should be up fr</span>
+    </button>
+    <div class="reinstate-count"><span id="reinstateCount">0</span> people agree</div>
+  </div>
+</div>
+
 <!-- TAKEDOWN MODAL -->
 <div class="overlay" id="takedownOverlay" onclick="closeTakedownOut(event)">
   <div class="modal" style="max-width:440px;padding:28px 24px">
@@ -1338,6 +1471,9 @@ nav {
   </button>
   <button class="bottom-tab"        id="btTitles" onclick="showPage('titles',this,true)">
     <span class="bottom-tab-icon">🎖️</span>Titles
+  </button>
+  <button class="bottom-tab"        id="btGraveyard" onclick="showPage('graveyard',this,true)">
+    <span class="bottom-tab-icon">🪦</span>Graveyard
   </button>
   <button class="bottom-tab"        id="btFeedback" onclick="showPage('feedback',this,true)">
     <span class="bottom-tab-icon">💬</span>Feedback
@@ -2187,6 +2323,145 @@ async function fetchThumb(title) {
 }
 
 // ─────────────────────────────────────────
+//  TOMBSTONES
+// ─────────────────────────────────────────
+const TOMB_VOTE_KEY = 'cgg_tomb_votes'; // { entryId: true }
+
+function tombGetVoted() {
+  try { return JSON.parse(localStorage.getItem(TOMB_VOTE_KEY) || '{}'); } catch { return {}; }
+}
+function tombMarkVoted(entryId) {
+  const d = tombGetVoted(); d[entryId] = true;
+  try { localStorage.setItem(TOMB_VOTE_KEY, JSON.stringify(d)); } catch {}
+}
+function tombAlreadyVoted(entryId) { return !!tombGetVoted()[entryId]; }
+
+let curTomb = null; // current tombstone object
+
+async function checkTombstone(key) {
+  // Called from openEntry — returns tombstone if entry is deleted, else null
+  try {
+    const rows = await sbFetch(`/rest/v1/tombstones?entry_id=eq.${encodeURIComponent(key)}&select=*&limit=1`);
+    return rows?.[0] || null;
+  } catch { return null; }
+}
+
+function openTombstone(tomb) {
+  curTomb = tomb;
+  const voted = tombAlreadyVoted(tomb.entry_id);
+  document.getElementById('tombName').textContent   = tomb.entry_name;
+  document.getElementById('tombTdCount').textContent = tomb.takedown_count || 0;
+  const removedDate = new Date(tomb.deleted_at).toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'}).toUpperCase();
+  document.getElementById('tombDate').textContent   = 'REMOVED ' + removedDate;
+  // Reason
+  const reasonEl = document.getElementById('tombReason');
+  if (tomb.reason) {
+    reasonEl.innerHTML = `<span style="color:var(--muted);font-size:0.72rem;letter-spacing:1px;text-transform:uppercase">Reason</span><br>${escH(tomb.reason)}<br><br>Think it should come back?`;
+  } else {
+    reasonEl.innerHTML = 'This entry was reviewed and removed by the cooked.gg team.<br>Think it should come back?';
+  }
+  document.getElementById('reinstateCount').textContent = tomb.reinstate_count || 0;
+  const btn = document.getElementById('reinstateBtn');
+  btn.classList.toggle('voted', voted);
+  document.getElementById('reinstateEmoji').textContent = voted ? '✅' : '👀';
+  document.getElementById('reinstateLabel').textContent = voted ? 'You voted to bring it back' : 'Nah this should be up fr';
+  document.getElementById('tombOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTomb() {
+  document.getElementById('tombOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  curTomb = null;
+}
+function closeTombOut(e) {
+  if (e.target === document.getElementById('tombOverlay')) closeTomb();
+}
+
+async function doReinstate() {
+  if (!curTomb) return;
+  if (tombAlreadyVoted(curTomb.entry_id)) return;
+  tombMarkVoted(curTomb.entry_id);
+  // Optimistic
+  curTomb.reinstate_count = (curTomb.reinstate_count || 0) + 1;
+  document.getElementById('reinstateCount').textContent = curTomb.reinstate_count;
+  const btn = document.getElementById('reinstateBtn');
+  btn.classList.add('voted');
+  document.getElementById('reinstateEmoji').textContent = '✅';
+  document.getElementById('reinstateLabel').textContent = 'You voted to bring it back';
+  try {
+    await sbFetch(`/rest/v1/tombstones?entry_id=eq.${encodeURIComponent(curTomb.entry_id)}`, {
+      method: 'PATCH',
+      headers: { 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ reinstate_count: curTomb.reinstate_count })
+    });
+  } catch {
+    // rollback
+    curTomb.reinstate_count--;
+    document.getElementById('reinstateCount').textContent = curTomb.reinstate_count;
+    btn.classList.remove('voted');
+    document.getElementById('reinstateEmoji').textContent = '👀';
+    document.getElementById('reinstateLabel').textContent = 'Nah this should be up fr';
+    tombGetVoted()[curTomb.entry_id] && delete tombGetVoted()[curTomb.entry_id];
+  }
+}
+
+// ─────────────────────────────────────────
+//  GRAVEYARD PAGE
+// ─────────────────────────────────────────
+let graveyardData = [];
+
+async function loadGraveyard() {
+  document.getElementById('gravRevivalLb').innerHTML = '<div style="color:var(--muted);font-size:0.82rem;padding:20px 0">Loading…</div>';
+  document.getElementById('gravAllTombs').innerHTML  = '<div style="color:var(--muted);font-size:0.82rem;padding:20px 0">Loading…</div>';
+  try {
+    const rows = await sbFetch('/rest/v1/tombstones?select=*&order=reinstate_count.desc&limit=100');
+    graveyardData = rows || [];
+  } catch { graveyardData = []; }
+  renderGraveyard();
+}
+
+function renderGraveyard() {
+  const data = graveyardData;
+
+  // Revival leaderboard — top 5 by reinstate_count
+  const top = [...data].sort((a,b) => (b.reinstate_count||0) - (a.reinstate_count||0)).slice(0,5);
+  const lbEl = document.getElementById('gravRevivalLb');
+  if (!top.length || top[0].reinstate_count === 0) {
+    lbEl.innerHTML = '<div style="color:var(--muted);font-size:0.82rem;padding:12px 0">No revival votes yet.</div>';
+  } else {
+    lbEl.innerHTML = '<div class="revival-lb">' + top.map((t,i) => {
+      const rankCls = i===0?'r1':i===1?'r2':i===2?'r3':'';
+      return `<div class="revival-row" onclick="openTombstone(graveyardData.find(x=>x.entry_id==='${esc(t.entry_id)}'))">
+        <span class="revival-rank ${rankCls}">${i+1}</span>
+        <span class="revival-name">${escH(t.entry_name)}</span>
+        <span class="revival-votes">⚡ ${t.reinstate_count} want it back</span>
+      </div>`;
+    }).join('') + '</div>';
+  }
+
+  // All tombstones — sorted by date desc
+  const allEl = document.getElementById('gravAllTombs');
+  if (!data.length) {
+    allEl.innerHTML = '<div style="color:var(--muted);font-size:0.82rem;padding:20px 0;text-align:center">The graveyard is empty. For now. 👀</div>';
+    return;
+  }
+  const sorted = [...data].sort((a,b) => new Date(b.deleted_at) - new Date(a.deleted_at));
+  allEl.innerHTML = sorted.map(t => {
+    const votes = t.reinstate_count || 0;
+    const date  = new Date(t.deleted_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    return `<div class="tomb-card" onclick="openTombstone(graveyardData.find(x=>x.entry_id==='${esc(t.entry_id)}'))">
+      <span class="tomb-card-icon">🪦</span>
+      <div class="tomb-card-info">
+        <div class="tomb-card-name">${escH(t.entry_name)}</div>
+        <div class="tomb-card-meta">Removed ${date} · ${t.takedown_count||0} TD request${(t.takedown_count||0)!==1?'s':''}</div>
+      </div>
+      ${votes > 0 ? `<div class="tomb-card-votes">⚡ ${votes}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────
 //  TAKEDOWN REQUESTS
 // ─────────────────────────────────────────
 function openTakedown() {
@@ -2430,6 +2705,11 @@ async function openEntry(title, cat) {
   hideDD();
   inp.value = '';
   const key = cat + '::' + title.toLowerCase().replace(/\s+/g,'_');
+
+  // Check if entry has been tombstoned before doing anything else
+  const tomb = await checkTombstone(key);
+  if (tomb) { openTombstone(tomb); return; }
+
   if (!store.entries[key]) store.entries[key] = { name:title, cat, smooth:0, giga:0, image:null, extract:'' };
   curKey = key;
 
@@ -3033,19 +3313,20 @@ function showPage(page, btn, fromBottom) {
   // Sync top nav tabs
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   if (!fromBottom) btn.classList.add('active');
-  const topMap = {home:'Vote', boards:'Boards', titles:'Titles', feedback:'Feedback'};
+  const topMap = {home:'Vote', boards:'Boards', titles:'Titles', feedback:'Feedback', graveyard:'🪦 Graveyard'};
   document.querySelectorAll('.nav-tab').forEach(t=>{
     if(t.textContent.trim()===topMap[page]) t.classList.add('active');
   });
 
   // Sync bottom tabs
-  const btMap = {home:'btVote', boards:'btBoards', titles:'btTitles', feedback:'btFeedback'};
+  const btMap = {home:'btVote', boards:'btBoards', titles:'btTitles', feedback:'btFeedback', graveyard:'btGraveyard'};
   document.querySelectorAll('.bottom-tab').forEach(t=>t.classList.remove('active'));
   const btId = btMap[page];
   if (btId) document.getElementById(btId)?.classList.add('active');
 
-  if (page==='boards') renderBoards();
-  if (page==='titles') renderTitles();
+  if (page==='boards')    renderBoards();
+  if (page==='titles')    renderTitles();
+  if (page==='graveyard') loadGraveyard();
 }
 
 // ─────────────────────────────────────────
