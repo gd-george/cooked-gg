@@ -1261,6 +1261,47 @@ nav {
       <button class="share-btn" id="shareBtn" onclick="doShare()">
         <span>↑</span> Share for votes
       </button>
+      <div style="text-align:center;margin-top:10px">
+        <button onclick="openTakedown()" style="background:none;border:none;font-size:0.7rem;color:var(--muted);cursor:pointer;text-decoration:underline;font-family:inherit">Request removal of this entry</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAKEDOWN MODAL -->
+<div class="overlay" id="takedownOverlay" onclick="closeTakedownOut(event)">
+  <div class="modal" style="max-width:440px;padding:28px 24px">
+    <button class="modal-x" onclick="closeTakedown()">✕</button>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;margin-bottom:6px">Request Removal</div>
+    <div id="tdEntryName" style="font-size:0.75rem;color:var(--muted);margin-bottom:20px"></div>
+    <div style="font-size:0.82rem;color:var(--muted);line-height:1.6;margin-bottom:20px">
+      If you believe this entry should be removed, tell us why. We review all requests manually.
+    </div>
+    <div id="tdFormWrap">
+      <div style="margin-bottom:14px">
+        <label style="font-size:0.68rem;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:6px">REASON <span style="color:var(--red)">*</span></label>
+        <select id="tdReason" style="width:100%;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.82rem;font-family:inherit">
+          <option value="">Select a reason…</option>
+          <option value="private_individual">This is a private individual, not a public figure</option>
+          <option value="inaccurate">The entry information is inaccurate or misleading</option>
+          <option value="defamatory">The content is defamatory</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:0.68rem;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:6px">DETAILS</label>
+        <textarea id="tdDetails" placeholder="Tell us more…" style="width:100%;min-height:80px;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.82rem;font-family:inherit;resize:vertical;line-height:1.5"></textarea>
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="font-size:0.68rem;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:6px">EMAIL <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional — for updates)</span></label>
+        <input id="tdEmail" type="email" placeholder="you@example.com" style="width:100%;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.82rem;font-family:inherit">
+      </div>
+      <button onclick="submitTakedown()" style="width:100%;padding:12px;background:var(--red);border:none;border-radius:8px;color:#fff;font-weight:600;font-size:0.88rem;cursor:pointer;font-family:inherit" id="tdSubmitBtn">Submit Request</button>
+    </div>
+    <div id="tdSuccess" style="display:none;text-align:center;padding:20px 0">
+      <div style="font-size:2.5rem;margin-bottom:12px">📬</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;color:var(--gold);margin-bottom:8px">REQUEST RECEIVED</div>
+      <div style="font-size:0.82rem;color:var(--muted);line-height:1.6">We review all requests manually.<br>Your ticket ID: <span id="tdTicketId" style="color:var(--text);font-family:monospace"></span></div>
     </div>
   </div>
 </div>
@@ -2143,6 +2184,60 @@ async function fetchThumb(title) {
   const d = await (await fetch(url)).json();
   const pg = Object.values(d.query.pages)[0];
   return pg.thumbnail ? pg.thumbnail.source : null;
+}
+
+// ─────────────────────────────────────────
+//  TAKEDOWN REQUESTS
+// ─────────────────────────────────────────
+function openTakedown() {
+  if (!curKey) return;
+  const e = store.entries[curKey];
+  document.getElementById('tdEntryName').textContent = e?.name || curKey;
+  document.getElementById('tdReason').value   = '';
+  document.getElementById('tdDetails').value  = '';
+  document.getElementById('tdEmail').value    = '';
+  document.getElementById('tdFormWrap').style.display = '';
+  document.getElementById('tdSuccess').style.display  = 'none';
+  document.getElementById('tdSubmitBtn').textContent  = 'Submit Request';
+  document.getElementById('tdSubmitBtn').disabled     = false;
+  document.getElementById('takedownOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeTakedown() {
+  document.getElementById('takedownOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function closeTakedownOut(e) {
+  if (e.target === document.getElementById('takedownOverlay')) closeTakedown();
+}
+async function submitTakedown() {
+  const reason  = document.getElementById('tdReason').value;
+  const details = document.getElementById('tdDetails').value.trim();
+  const email   = document.getElementById('tdEmail').value.trim();
+  if (!reason) { toast('Please select a reason'); return; }
+  const e = store.entries[curKey];
+  const btn = document.getElementById('tdSubmitBtn');
+  btn.textContent = 'Submitting…'; btn.disabled = true;
+  try {
+    const rows = await sbFetch('/rest/v1/takedown_requests', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        entry_id:    curKey,
+        entry_name:  e?.name || curKey,
+        reason:      reason + (details ? ' — ' + details : ''),
+        email:       email || null,
+        fingerprint: FINGERPRINT,
+      })
+    });
+    const ticketId = rows?.[0]?.ticket_id || '';
+    document.getElementById('tdTicketId').textContent = ticketId;
+    document.getElementById('tdFormWrap').style.display = 'none';
+    document.getElementById('tdSuccess').style.display  = '';
+  } catch(err) {
+    toast('Submission failed — please try again');
+    btn.textContent = 'Submit Request'; btn.disabled = false;
+  }
 }
 
 // ─────────────────────────────────────────
